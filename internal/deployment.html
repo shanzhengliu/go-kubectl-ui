@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Local DashBoard</title>
+	</head>
+	<body>
+        <a href="/deployment">Deployment</a>
+        <a href="/configmap">Configmap</a>
+        <a href="/ingress">Ingress</a>
+        <table>
+            <tr>
+                <th>Deployments</th>
+                <th>Containers</th>
+                <th>Image</th>
+                <th>Status</th>
+            </tr>
+		{{ range $base :=. }}
+            {{ range .Containers}}
+            <tr><td>{{ $base.Name }}</td><td>{{ .Name }}</td> 
+            <td>{{ .Image }}</td> 
+            <td>{{$base.Status}}</td></tr>
+            {{ end }}        
+        {{end}}
+        </table>
+	</body>
+</html>

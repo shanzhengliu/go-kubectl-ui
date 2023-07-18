@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+
+<html>
+    <script >
+        function tableJsonGenerate(data){
+            
+            let table = document.createElement("table")
+            table.setAttribute("id","data-json")
+           
+            for (const [key, value] of Object.entries(data)) {
+               let tr = document.createElement("tr")
+               let keyTd= document.createElement("td")
+               keyTd.textContent = key
+               let valueTd= document.createElement("td")
+               valueTd.textContent = value
+               tr.appendChild(keyTd)
+               tr.appendChild(valueTd)
+               table.appendChild(tr)
+            }
+           
+            return table
+        }
+        async function configMapView(name){
+            fetch("api/configmap-detail?configmap="+name).then(async (result)=>{
+                result = await result.json()
+                let dataJson = document.getElementById("data-json")
+                if(dataJson!=undefined){
+                    console.log("remove")
+                    dataJson.remove()
+                }
+                document.querySelector("#dialog-data").appendChild(tableJsonGenerate(result));
+                document.querySelector('#dialog').showModal()
+            })
+           
+        }
+
+        function closeModal(){
+            document.querySelector('#dialog').close()
+        }
+    </script>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Local DashBoard</title>
+	</head>
+	<body>
+        <a href="/deployment">Deployment</a>
+        <a href="/configmap">Configmap</a>
+        <a href="/ingress">Ingress</a>
+        <table>
+            <tr>
+                <th>Configmap</th>
+                <th>NameSpace</th>
+                <th>Action</th>
+            </tr>
+		{{ range $base :=. }}
+            <tr><td>{{ $base.Name }}</td>
+                <td>{{ $base.Namespace }}</td>
+                <td><button onclick="configMapView('{{ $base.Name }}')" >view data</button></td>
+            </tr>       
+        {{end}}
+        </table>
+	</body>
+
+    <dialog style="width: 700px; height:700px;" id="dialog">
+       <div style="width: 650px; height: 650px; text-align: center; " id="dialog-data">
+       </div>
+      <button style="float: right; bottom: auto;" onclick="closeModal()" >close</button>
+    </dialog>
+</html>
