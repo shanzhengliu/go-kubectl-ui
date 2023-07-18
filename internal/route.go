@@ -38,25 +38,27 @@ func TemplateRender(path string) *template.Template {
 }
 
 func DeploymentHandler(w http.ResponseWriter, r *http.Request) {
-	result := DeploymentList(clientset, "shared-helios")
+	result := DeploymentList(clientset, r.Context().Value("namespace").(string))
 	TemplateRender("/internal/deployment.html").Execute(w, result)
 }
 
 func ConfigMapListHandler(w http.ResponseWriter, r *http.Request) {
-
-	result := ConfigMapList(clientset, "shared-helios")
+	result := ConfigMapList(clientset, r.Context().Value("namespace").(string))
 	TemplateRender("/internal/configmap.html").Execute(w, result)
 
 }
 
 func IngressListHandler(w http.ResponseWriter, r *http.Request) {
-
-	result := IngressList(clientset, "shared-helios")
+	result := IngressList(clientset, r.Context().Value("namespace").(string))
 	TemplateRender("/internal/ingress.html").Execute(w, result)
+}
 
+func PodListHandler(w http.ResponseWriter, r *http.Request) {
+	result := PodList(clientset, r.Context().Value("namespace").(string))
+	TemplateRender("/internal/pod.html").Execute(w, result)
 }
 
 func ConfigMapDetailHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(ConfigMapDetail(clientset, "shared-helios", r.URL.Query().Get("configmap")))
+	json.NewEncoder(w).Encode(ConfigMapDetail(clientset, r.Context().Value("namespace").(string), r.URL.Query().Get("configmap")))
 }

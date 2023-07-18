@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+
+<html>
+    <script >
+    </script>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Local DashBoard</title>
+	</head>
+	<body>
+        {{template "navigator" }}
+        <table>
+            <tr>
+                <th>Pod</th>
+                <th>NameSpace</th>
+                <th>Image</th>
+                <th>Image Id</th>
+                <th>Status</th>
+            </tr>
+		{{ range $base :=. }}
+            {{ range .PodImages }}
+            <tr>
+                <td>{{ $base.Name }}</td>
+                <td>{{ $base.Namespace }}</td>
+                <td>{{ .Name }}</td>
+                <td>{{ .Id }}</td>
+                <td>{{ $base.Status }}</td>
+            </tr> 
+            {{end}}      
+        {{end}}
+        </table>
+	</body>
+
+    <dialog style="width: 700px; height:700px;" id="dialog">
+       <div style="width: 650px; height: 650px; text-align: center; " id="dialog-data">
+         
+       </div>
+      <button style="float: right; bottom: auto;" onclick="closeModal()" >close</button>
+    </dialog>
+</html>

@@ -35,9 +35,5 @@ func ConfigMapDetail(clientset *kubernetes.Clientset, namespace string, name str
 	if error != nil {
 		panic(error.Error())
 	}
-	// jsonResult, error := json.Marshal(configMap.Data)
-	// if error != nil {
-	// 	panic(error.Error())
-	// }
 	return configMap.Data
 }

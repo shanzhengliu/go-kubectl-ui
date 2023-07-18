@@ -32,6 +32,7 @@ func DeploymentList(clientset *kubernetes.Clientset, namespace string) []Deploym
 			Status:     item.Status.AvailableReplicas,
 		}
 		for _, container := range item.Spec.Template.Spec.Containers {
+
 			container := &Container{
 				Name:  container.Name,
 				Image: container.Image,
