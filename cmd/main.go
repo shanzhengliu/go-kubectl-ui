@@ -5,9 +5,17 @@ import (
 	"log"
 	"modules/internal"
 	"net/http"
+	"os/exec"
 )
 
 func main() {
+
+	cmd := exec.Command("kubectl", "config", "use-context", "nonprod")
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	internal.RouteInit()
 	router := http.NewServeMux()
 	router.HandleFunc("/", internal.DeploymentHandler)

@@ -30,7 +30,7 @@ func TemplateRender(path string) *template.Template {
 	if err != nil {
 		log.Fatal(err)
 	}
-	template, err := template.ParseFiles(wd + path)
+	template, err := template.ParseFiles(wd+path, wd+"/internal/navigator.tpl")
 	if err != nil {
 		panic(err)
 	}
