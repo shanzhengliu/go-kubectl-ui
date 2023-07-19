@@ -1,10 +1,10 @@
 package internal
 
 import (
+	"context"
+	"embed"
 	"encoding/json"
-	"log"
 	"net/http"
-	"os"
 	"text/template"
 
 	"k8s.io/client-go/kubernetes"
@@ -25,12 +25,10 @@ func RouteInit() {
 
 }
 
-func TemplateRender(path string) *template.Template {
-	wd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-	template, err := template.ParseFiles(wd+path, wd+"/internal/navigator.tpl")
+func TemplateRender(ctx context.Context, path string) *template.Template {
+	tplblob := ctx.Value("static").(embed.FS)
+
+	template, err := template.ParseFS(tplblob, "static/"+path+".html", "static/navigator.tpl")
 	if err != nil {
 		panic(err)
 	}
@@ -39,23 +37,23 @@ func TemplateRender(path string) *template.Template {
 
 func DeploymentHandler(w http.ResponseWriter, r *http.Request) {
 	result := DeploymentList(clientset, r.Context().Value("namespace").(string))
-	TemplateRender("/internal/deployment.html").Execute(w, result)
+	TemplateRender(r.Context(), "deployment").Execute(w, result)
 }
 
 func ConfigMapListHandler(w http.ResponseWriter, r *http.Request) {
 	result := ConfigMapList(clientset, r.Context().Value("namespace").(string))
-	TemplateRender("/internal/configmap.html").Execute(w, result)
+	TemplateRender(r.Context(), "configmap").Execute(w, result)
 
 }
 
 func IngressListHandler(w http.ResponseWriter, r *http.Request) {
 	result := IngressList(clientset, r.Context().Value("namespace").(string))
-	TemplateRender("/internal/ingress.html").Execute(w, result)
+	TemplateRender(r.Context(), "ingress").Execute(w, result)
 }
 
 func PodListHandler(w http.ResponseWriter, r *http.Request) {
 	result := PodList(clientset, r.Context().Value("namespace").(string))
-	TemplateRender("/internal/pod.html").Execute(w, result)
+	TemplateRender(r.Context(), "pod").Execute(w, result)
 }
 
 func ConfigMapDetailHandler(w http.ResponseWriter, r *http.Request) {
