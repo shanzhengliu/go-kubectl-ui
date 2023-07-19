@@ -25,7 +25,6 @@
                 result = await result.json()
                 let dataJson = document.getElementById("data-json")
                 if(dataJson!=undefined){
-                    console.log("remove")
                     dataJson.remove()
                 }
                 document.querySelector("#dialog-data").appendChild(tableJsonGenerate(result));

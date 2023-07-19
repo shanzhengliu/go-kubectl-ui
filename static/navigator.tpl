@@ -6,7 +6,7 @@
             tr.forEach(element => {
               var td =  element.querySelectorAll('td');
               const found = [...td].find(cell => {
-                   console.log(cell.textContent, value)
+                
                     return cell.textContent.includes(value);
               });
               if( !found){
