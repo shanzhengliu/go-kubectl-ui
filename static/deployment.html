@@ -15,7 +15,7 @@
             </tr>
 		{{ range $base :=. }}
             {{ range .Containers}}
-            <tr><td>{{ $base.Name }}</td><td>{{ .Name }}</td> 
+            <tr class="tbbody"><td>{{ $base.Name }}</td><td>{{ .Name }}</td> 
             <td>{{ .Image }}</td> 
             <td>{{$base.Status}}</td></tr>
             {{ end }}        

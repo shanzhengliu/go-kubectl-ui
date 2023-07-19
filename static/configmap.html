@@ -51,7 +51,7 @@
                 <th>Action</th>
             </tr>
 		{{ range $base :=. }}
-            <tr><td>{{ $base.Name }}</td>
+            <tr class="tbbody"><td>{{ $base.Name }}</td>
                 <td>{{ $base.Namespace }}</td>
                 <td><button onclick="configMapView('{{ $base.Name }}')" >view data</button></td>
             </tr>       

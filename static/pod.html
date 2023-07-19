@@ -19,7 +19,7 @@
             </tr>
 		{{ range $base :=. }}
             {{ range .PodImages }}
-            <tr>
+            <tr class="tbbody">
                 <td>{{ $base.Name }}</td>
                 <td>{{ $base.Namespace }}</td>
                 <td>{{ .Name }}</td>

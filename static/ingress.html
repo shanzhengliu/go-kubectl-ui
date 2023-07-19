@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 
 <html>
-    <script >
-    </script>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<title>Local DashBoard</title>
@@ -17,7 +15,7 @@
             </tr>
 		{{ range $base :=. }}
             {{ range .Rules }}
-            <tr>
+            <tr class="tbbody">
                 <td>{{ $base.Name }}</td>
                 <td>{{ $base.Namespace }}</td>
                 <td><a  target="_blank" href="https://{{ .HOST}}">https://{{ .HOST}}</a></td>
