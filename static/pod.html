@@ -16,6 +16,7 @@
                 <th>Image</th>
                 <th>Image Id</th>
                 <th>Status</th>
+                <th>Create Time</th>
             </tr>
 		{{ range $base :=. }}
             {{ range .PodImages }}
@@ -25,6 +26,7 @@
                 <td>{{ .Name }}</td>
                 <td>{{ .Id }}</td>
                 <td>{{ $base.Status }}</td>
+                <td>{{ $base.CreateTime }}</td>
             </tr> 
             {{end}}      
         {{end}}

@@ -9,10 +9,11 @@ import (
 )
 
 type Pod struct {
-	Name      string      `json:"name"`
-	Namespace string      `json:"namespace"`
-	PodImages []PodImage  `json:"images"`
-	Status    v1.PodPhase `json:"status"`
+	Name       string      `json:"name"`
+	Namespace  string      `json:"namespace"`
+	PodImages  []PodImage  `json:"images"`
+	Status     v1.PodPhase `json:"status"`
+	CreateTime string      `json:"createTime"`
 }
 
 type PodImage struct {
@@ -39,10 +40,11 @@ func PodList(clientset *kubernetes.Clientset, namespace string) []Pod {
 		}
 
 		tempPod := &Pod{
-			Name:      item.Name,
-			Namespace: item.Namespace,
-			PodImages: returnImages,
-			Status:    item.Status.Phase,
+			Name:       item.Name,
+			Namespace:  item.Namespace,
+			PodImages:  returnImages,
+			Status:     item.Status.Phase,
+			CreateTime: item.CreationTimestamp.String(),
 		}
 		podList = append(podList, *tempPod)
 	}
