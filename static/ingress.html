@@ -6,14 +6,16 @@
 		<title>Local DashBoard</title>
 	</head>
 	<body>
-        {{template "navigator" }}
+        {{template "contextSwitch" .}}
+        {{template "navigator"  }}
+
         <table>
             <tr>
                 <th>Ingress</th>
                 <th>NameSpace</th>
                 <th>HOST</th>
             </tr>
-		{{ range $base :=. }}
+		{{ range $base :=.ResultList }}
             {{ range .Rules }}
             <tr class="tbbody">
                 <td>{{ $base.Name }}</td>

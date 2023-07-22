@@ -28,11 +28,6 @@ var static embed.FS
 // var tpl embed.FS
 
 func loadTeamplate(ctx context.Context) context.Context {
-	// ctx = context.WithValue(ctx, "tpl", tpl)
-	// ctx = context.WithValue(ctx, "pod", pod)
-	// ctx = context.WithValue(ctx, "deployment", deployment)
-	// ctx = context.WithValue(ctx, "ingress", ingress)
-	// ctx = context.WithValue(ctx, "configmap", configmap)
 	ctx = context.WithValue(ctx, "static", static)
 	return ctx
 }
@@ -70,7 +65,7 @@ func main() {
 	ctx := context.WithValue(context.Background(), "namespace", namespace)
 	ctx = context.WithValue(ctx, "environment", config)
 	ctx = loadTeamplate(ctx)
-	internal.RouteInit()
+	ctx = internal.RouteInit(ctx)
 	router := http.NewServeMux()
 
 	router.HandleFunc("/", Chain(internal.DeploymentHandler, ContextAdd(ctx)))

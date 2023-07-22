@@ -5,7 +5,9 @@
 		<title>Local DashBoard</title>
 	</head>
 	<body>
-        {{template "navigator" }}
+        {{template "contextSwitch" .}}
+        {{template "navigator"  }}
+    
         <table>
             <tr>
                 <th>Deployments</th>
@@ -13,7 +15,7 @@
                 <th>Image</th>
                 <th>Status</th>
             </tr>
-		{{ range $base :=. }}
+		{{ range $base :=.ResultList }}
             {{ range .Containers}}
             <tr class="tbbody"><td>{{ $base.Name }}</td><td>{{ .Name }}</td> 
             <td>{{ .Image }}</td> 

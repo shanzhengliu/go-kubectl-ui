@@ -4,6 +4,8 @@ import (
 	"flag"
 	"path/filepath"
 
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/tools/clientcmd/api"
 	"k8s.io/client-go/util/homedir"
 )
 
@@ -16,4 +18,16 @@ func Kubeconfig() string {
 	}
 	flag.Parse()
 	return *kubeconfig
+}
+
+func KubeconfigList(configPath string) map[string]*api.Context {
+	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		&clientcmd.ClientConfigLoadingRules{ExplicitPath: configPath},
+		&clientcmd.ConfigOverrides{
+			CurrentContext: "",
+		}).RawConfig()
+	if err != nil {
+		panic(err.Error())
+	}
+	return config.Contexts
 }

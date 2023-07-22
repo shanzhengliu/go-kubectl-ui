@@ -8,7 +8,9 @@
 		<title>Local DashBoard</title>
 	</head>
 	<body>
-        {{template "navigator" }}
+        {{template "contextSwitch" .}}
+        {{template "navigator"  }}
+
         <table>
             <tr>
                 <th>Pod</th>
@@ -18,7 +20,7 @@
                 <th>Status</th>
                 <th>Create Time</th>
             </tr>
-		{{ range $base :=. }}
+		{{ range $base :=.ResultList }}
             {{ range .PodImages }}
             <tr class="tbbody">
                 <td>{{ $base.Name }}</td>

@@ -42,14 +42,16 @@
 		<title>Local DashBoard</title>
 	</head>
 	<body>
-        {{template "navigator" }}
+        {{template "contextSwitch" .}}
+        {{template "navigator"  }}
+
         <table>
             <tr>
                 <th>Configmap</th>
                 <th>NameSpace</th>
                 <th>Action</th>
             </tr>
-		{{ range $base :=. }}
+		{{ range $base :=.ResultList }}
             <tr class="tbbody"><td>{{ $base.Name }}</td>
                 <td>{{ $base.Namespace }}</td>
                 <td><button onclick="configMapView('{{ $base.Name }}')" >view data</button></td>
