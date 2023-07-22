@@ -15,17 +15,7 @@ import (
 //go:embed static
 var static embed.FS
 
-// //go:embed static/configmap
-// var configmap embed.FS
-
-// //go:embed static/deployment
-// var deployment embed.FS
-
-// //go:embed static/ingress
-// var ingress embed.FS
-
-// //go:embed static/tpl
-// var tpl embed.FS
+var ctxMap map[string]interface{} = make(map[string]interface{})
 
 func loadTeamplate(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, "static", static)
@@ -62,10 +52,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	ctx := context.WithValue(context.Background(), "namespace", namespace)
-	ctx = context.WithValue(ctx, "environment", config)
-	ctx = loadTeamplate(ctx)
-	ctx = internal.RouteInit(ctx)
+	ctx := context.WithValue(context.Background(), "map", ctxMap)
+	ctxMap["environment"] = config
+	ctxMap["static"] = static
+	ctxMap["namespace"] = namespace
+	internal.RouteInit(ctx)
 	router := http.NewServeMux()
 
 	router.HandleFunc("/", Chain(internal.DeploymentHandler, ContextAdd(ctx)))
@@ -74,6 +65,7 @@ func main() {
 	router.HandleFunc("/ingress", Chain(internal.IngressListHandler, ContextAdd(ctx)))
 	router.HandleFunc("/pod", Chain(internal.PodListHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/configmap-detail", Chain(internal.ConfigMapDetailHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/context-change", Chain(internal.ContextChangeHandler, ContextAdd(ctx)))
 	fmt.Println("listening 8080 port")
 	log.Fatal(http.ListenAndServe(":8080", router))
 
