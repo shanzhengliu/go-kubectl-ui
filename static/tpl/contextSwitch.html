@@ -16,9 +16,8 @@
         window.location.reload()
     }
 </script>
-Context: <span style="color: red;"> {{.CurrentContext}} </span> </br>
-Namespace: <span style="color: red;"> {{.Namespace}}</span></br> 
-<button class="btn btn-primary" onclick="showConfigDalog()">config switch</button><br/>
+<br/>
+Context: <span style="color: red;"> {{.CurrentContext}} </span>&nbsp;Namespace: <span style="color: red;"> {{.Namespace}}</span>&nbsp;<button class="btn btn-primary" onclick="showConfigDalog()">config switch</button>
 <dialog style="width: 400px; height:300px;" id="configDalog">
     <div style="width: 300px; height:200px; text-align: center; ">
         <table class="table">
