@@ -1,6 +1,12 @@
 ## Introduction  
 This project is a really simple project for view the k8s resource status.
 
+## Function  
+1: Display Pod, Deployment, Configmap, Service, Ingress  
+2: Context && Namespace switch via Web UI  
+3: View Configmap Data  
+4: View Pod Container Log  
+
 ## Install
 run `go build -o web-kubectl main.go` and the binary file will be built.
 
