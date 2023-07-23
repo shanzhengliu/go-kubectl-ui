@@ -27,7 +27,8 @@
                 if(dataJson!=undefined){
                     dataJson.remove()
                 }
-                document.querySelector("#dialog-data").appendChild(tableJsonGenerate(result));
+                table = tableJsonGenerate(result)
+                document.querySelector("#dialog-data").appendChild(table);
                 document.querySelector('#dialog').showModal()
             })
            
@@ -39,13 +40,14 @@
     </script>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        {{template "style"}}
 		<title>Local DashBoard</title>
 	</head>
 	<body>
         {{template "contextSwitch" .}}
         {{template "navigator"  }}
 
-        <table>
+        <table class="table">
             <tr>
                 <th>Configmap</th>
                 <th>NameSpace</th>

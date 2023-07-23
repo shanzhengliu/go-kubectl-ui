@@ -39,7 +39,7 @@ func TemplateRender(ctx context.Context, path string, resultList interface{}, w 
 	ctxMap := ctx.Value("map").(map[string]interface{})
 	tplblob := ctxMap["static"].(embed.FS)
 
-	template, err := template.ParseFS(tplblob, "static/"+path+".html", "static/tpl/navigator.html", "static/tpl/contextSwitch.html")
+	template, err := template.ParseFS(tplblob, "static/"+path+".html", "static/tpl/navigator.html", "static/tpl/contextSwitch.html", "static/tpl/style.html")
 	if err != nil {
 		panic(err)
 	}
@@ -94,9 +94,10 @@ func ServiceListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ConfigMapDetailHandler(w http.ResponseWriter, r *http.Request) {
-	clientset := r.Context().Value("map").(map[string]interface{})["clientSet"].(*kubernetes.Clientset)
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(ConfigMapDetail(clientset, r.Context().Value("namespace").(string), r.URL.Query().Get("configmap")))
+	json.NewEncoder(w).Encode(ConfigMapDetail(clientset, ctxMap["namespace"].(string), r.URL.Query().Get("configmap")))
 }
 
 func ContextChangeHandler(w http.ResponseWriter, r *http.Request) {

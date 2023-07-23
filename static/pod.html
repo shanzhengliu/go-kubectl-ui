@@ -5,13 +5,14 @@
     </script>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        {{template "style"}}
 		<title>Local DashBoard</title>
 	</head>
 	<body>
         {{template "contextSwitch" .}}
         {{template "navigator"  }}
 
-        <table>
+        <table  class="table">
             <tr>
                 <th>Pod</th>
                 <th>NameSpace</th>
