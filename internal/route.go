@@ -19,8 +19,7 @@ type RenderResult struct {
 	Namespace      string      `json:"namespace"`
 }
 
-func RouteInit(ctx context.Context) {
-	path := Kubeconfig()
+func RouteInit(ctx context.Context, path string) {
 	config, err := clientcmd.BuildConfigFromFlags("", path)
 	if err != nil {
 		panic(err)

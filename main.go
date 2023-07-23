@@ -43,9 +43,13 @@ func Chain(f http.HandlerFunc, middlewares ...Middleware) http.HandlerFunc {
 func main() {
 	var config string
 	var namespace string
+	var port string
+	var path string
 
 	flag.StringVar(&config, "config", "minikube", "config context: eg: minikube")
 	flag.StringVar(&namespace, "namespace", "default", "namespace: eg: namespate")
+	flag.StringVar(&port, "port", "8080", "port: eg: 8080")
+	flag.StringVar(&path, "path", "NONE", "path: eg: /root/.kube/config")
 	flag.Parse()
 	cmd := exec.Command("kubectl", "config", "use-context", config)
 	err := cmd.Run()
@@ -56,9 +60,11 @@ func main() {
 	ctxMap["environment"] = config
 	ctxMap["static"] = static
 	ctxMap["namespace"] = namespace
-	internal.RouteInit(ctx)
+	if path == "NONE" {
+		path = internal.Kubeconfig()
+	}
+	internal.RouteInit(ctx, path)
 	router := http.NewServeMux()
-
 	router.HandleFunc("/", Chain(internal.DeploymentHandler, ContextAdd(ctx)))
 	router.HandleFunc("/deployment", Chain(internal.DeploymentHandler, ContextAdd(ctx)))
 	router.HandleFunc("/configmap", Chain(internal.ConfigMapListHandler, ContextAdd(ctx)))
@@ -67,7 +73,7 @@ func main() {
 	router.HandleFunc("/service", Chain(internal.ServiceListHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/configmap-detail", Chain(internal.ConfigMapDetailHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/context-change", Chain(internal.ContextChangeHandler, ContextAdd(ctx)))
-	fmt.Println("listening 8080 port")
-	log.Fatal(http.ListenAndServe(":8080", router))
+	fmt.Println("listening: " + port + " port")
+	log.Fatal(http.ListenAndServe(":"+port, router))
 
 }
