@@ -16,6 +16,7 @@
                 <th>Selector</th>
                 <th>Image</th>
                 <th>Status</th>
+                <th>Yaml(All)</th>
             </tr>
 		{{ range $base :=.ResultList }}
             {{ range .Containers}}
@@ -24,7 +25,9 @@
                 <td>{{ .Name }}</td> 
                 <td>{{ $base.Selector}}</td>
                 <td>{{ .Image }}</td> 
-                <td>{{$base.Status}}</td></tr>
+                <td>{{$base.Status}}</td>
+                <td><a  type="button" class="btn btn-primary" target="_blank" href="/api/deploymentYaml?deployment={{ $base.Name}}">Yaml</a></td>
+            </tr>
             {{ end }}        
         {{end}}
         </table>

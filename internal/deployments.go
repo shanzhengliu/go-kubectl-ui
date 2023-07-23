@@ -5,6 +5,7 @@ import (
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/yaml"
 )
 
 type Deployment struct {
@@ -45,4 +46,17 @@ func DeploymentList(clientset *kubernetes.Clientset, namespace string) []Deploym
 		deploymentList = append(deploymentList, *deployment)
 	}
 	return deploymentList
+}
+
+func DeploymentToYaml(clientset *kubernetes.Clientset, namespace string, name string) string {
+	deploymentsClient := clientset.AppsV1().Deployments(namespace)
+	deployment, error := deploymentsClient.Get(context.TODO(), name, v1.GetOptions{})
+	if error != nil {
+		panic(error.Error())
+	}
+	deploymentYaml, err := yaml.Marshal(deployment)
+	if err != nil {
+		panic(err.Error())
+	}
+	return string(deploymentYaml)
 }

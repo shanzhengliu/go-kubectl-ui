@@ -112,3 +112,19 @@ func PodLogHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write([]byte(log))
 }
+
+func PodtoYamlHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
+	yaml := PodtoYaml(clientset, ctxMap["namespace"].(string), r.URL.Query().Get("pod"))
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte(yaml))
+}
+
+func DeploymentYamlHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
+	yaml := DeploymentToYaml(clientset, ctxMap["namespace"].(string), r.URL.Query().Get("deployment"))
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte(yaml))
+}

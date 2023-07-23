@@ -7,6 +7,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	apiv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/yaml"
 )
 
 type Pod struct {
@@ -77,4 +78,17 @@ func PodLog(clientset *kubernetes.Clientset, namespace string, name string, cont
 	}
 	defer stream.Close()
 	return message
+}
+
+func PodtoYaml(clientset *kubernetes.Clientset, namespace string, name string) string {
+	podClient := clientset.CoreV1().Pods(namespace)
+	pod, err := podClient.Get(context.Background(), name, apiv1.GetOptions{})
+	if err != nil {
+		panic(err.Error())
+	}
+	podYamlString, err := yaml.Marshal(pod)
+	if err != nil {
+		panic(err.Error())
+	}
+	return string(podYamlString)
 }
