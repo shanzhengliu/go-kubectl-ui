@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"io"
 
 	v1 "k8s.io/api/core/v1"
 	apiv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,8 +18,9 @@ type Pod struct {
 }
 
 type PodImage struct {
-	Name string `json:"name"`
-	Id   string `json:"id"`
+	ContainerName string `json:"containerName"`
+	Name          string `json:"name"`
+	Id            string `json:"id"`
 }
 
 func PodList(clientset *kubernetes.Clientset, namespace string) []Pod {
@@ -33,8 +35,9 @@ func PodList(clientset *kubernetes.Clientset, namespace string) []Pod {
 		returnImages := []PodImage{}
 		for _, container := range containers {
 			tempPodImage := &PodImage{
-				Name: container.Image,
-				Id:   container.ImageID,
+				Name:          container.Image,
+				Id:            container.ImageID,
+				ContainerName: container.Name,
 			}
 			returnImages = append(returnImages, *tempPodImage)
 		}
@@ -49,4 +52,29 @@ func PodList(clientset *kubernetes.Clientset, namespace string) []Pod {
 		podList = append(podList, *tempPod)
 	}
 	return podList
+}
+
+func PodLog(clientset *kubernetes.Clientset, namespace string, name string, container string) string {
+	podClient := clientset.CoreV1().Pods(namespace)
+	stream, err := podClient.GetLogs(name, &v1.PodLogOptions{Container: container}).Stream(context.TODO())
+	if err != nil {
+		panic(err.Error())
+	}
+	message := ""
+	for {
+		buf := make([]byte, 2000)
+		numBytes, err := stream.Read(buf)
+		if err == io.EOF {
+			break
+		}
+		if numBytes == 0 {
+			continue
+		}
+		if err != nil {
+			panic(err.Error())
+		}
+		message += string(buf[:numBytes])
+	}
+	defer stream.Close()
+	return message
 }

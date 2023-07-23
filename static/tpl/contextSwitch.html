@@ -18,16 +18,16 @@
 </script>
 Context: <span style="color: red;"> {{.CurrentContext}} </span> </br>
 Namespace: <span style="color: red;"> {{.Namespace}}</span></br> 
-<button onclick="showConfigDalog()">config switch</button><br/>
+<button class="btn btn-primary" onclick="showConfigDalog()">config switch</button><br/>
 <dialog style="width: 400px; height:300px;" id="configDalog">
     <div style="width: 300px; height:200px; text-align: center; ">
-        <table>
+        <table class="table">
             <tr>
                 <th>
                     <label for="context">context:</label>
                 </th>
                 <td>
-                    <select name="context" id="context">
+                    <select class="form-select" name="context" id="context">
                     {{ range $base:= .ContextList}}
                     <option value="{{$base}}">{{$base}} </option> 
                     {{end}}
@@ -46,7 +46,7 @@ Namespace: <span style="color: red;"> {{.Namespace}}</span></br>
       
         </table>
     </div>
-    <button style="float: left; bottom: auto;" onclick="saveConfigModal()" >save</button>
-   <button style="float: right; bottom: auto;" onclick="closeConfigModal()" >close</button>
+    <button class="btn btn-primary" style="float: left; bottom: auto;" onclick="saveConfigModal()" >save</button>
+   <button  class="btn btn-secondary"style="float: right; bottom: auto;" onclick="closeConfigModal()" >close</button>
  </dialog>
 {{end}}

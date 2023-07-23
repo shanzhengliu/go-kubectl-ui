@@ -104,3 +104,11 @@ func ContextChangeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(nil)
 }
+
+func PodLogHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
+	log := PodLog(clientset, ctxMap["namespace"].(string), r.URL.Query().Get("pod"), r.URL.Query().Get("container"))
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte(log))
+}

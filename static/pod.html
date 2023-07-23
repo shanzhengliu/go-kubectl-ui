@@ -16,20 +16,24 @@
             <tr>
                 <th>Pod</th>
                 <th>NameSpace</th>
+                <th>Container</th>
                 <th>Image</th>
                 <th>Image Id</th>
                 <th>Status</th>
                 <th>Create Time</th>
+                <th>Logs</th>
             </tr>
 		{{ range $base :=.ResultList }}
             {{ range .PodImages }}
             <tr class="tbbody">
                 <td>{{ $base.Name }}</td>
                 <td>{{ $base.Namespace }}</td>
+                <td>{{ .ContainerName}} </td>
                 <td>{{ .Name }}</td>
                 <td>{{ .Id }}</td>
                 <td>{{ $base.Status }}</td>
                 <td>{{ $base.CreateTime }}</td>
+                <td><a  type="button" class="btn btn-primary" target="_blank" href="/api/podLogs?pod={{ $base.Name}}&container={{.ContainerName}}">View Log</a></td>
             </tr> 
             {{end}}      
         {{end}}
