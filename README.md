@@ -2,11 +2,19 @@
 This project is a really simple project for view the k8s resource status.
 
 ## Install
-run `go build main.go` and the binary file will be built.
+run `go build -o web-kubectl main.go` and the binary file will be built.
 
 ## Run
-run `./main --namespace {your namespace} --config {your config use-context}`  
+run `./web-kubectl --namespace {your namespace} --config {your config use-context} --port {your port} --path {config path}`  
 and access the `http://localhost:8080/`
+
+## Paramter List
+| Parameter | Default Value           | Optional | Description                                  |
+|-----------|-------------------------|----------|----------------------------------------------|
+| namespace | default                 | True     | user default namespace. eg: default          |
+| context   | minikube                | True     | user default context. eg: minikube           |
+| port      | 8080                    | True     | application running port eg:8080.            |
+| path      | {homeDir}/.kube/config | True     | use kube config path. eg: /root/.kube/config |
 
 ## Docker  
 Docker image can also work by running   
