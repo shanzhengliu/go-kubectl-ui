@@ -18,7 +18,7 @@ and access the `http://localhost:8080/`
 | Parameter | Default Value           | Optional | Description                                  |
 |-----------|-------------------------|----------|----------------------------------------------|
 | namespace | default                 | True     | user default namespace. eg: default          |
-| context   | minikube                | True     | user default context. eg: minikube           |
+| config   | minikube                | True     | user default context. eg: minikube           |
 | port      | 8080                    | True     | application running port eg:8080.            |
 | path      | {homeDir}/.kube/config | True     | use kube config path. eg: /root/.kube/config |
 
