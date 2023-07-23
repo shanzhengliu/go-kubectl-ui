@@ -1,7 +1,5 @@
 {{define "navigator"}}
-
-  <script>
-        
+  <script>       
         function search(value){
             var tr = document.querySelectorAll('.tbbody')
             tr.forEach(element => {
@@ -18,12 +16,27 @@
               }
             });
         }
-      </script>
-<a href="/pod">Pod</a>
-<a href="/deployment">Deployment</a>
-<a href="/configmap">Configmap</a>
-<a href="/service">Service</a>
-<a href="/ingress">Ingress</a>
- <br/>
-search <input  id=search type="text" onchange="search(value)"/>
+  </script>
+    <nav class="navbar navbar-expand-lg justify-content-between">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="/pod">Pod</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/deployment">Deployment</a>
+          </li>
+          <li class="nav-item">
+            <a  class="nav-link" href="/service">Service</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/configmap">Configmap</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/ingress">Ingress</a>
+          </li>
+        </ul>
+        <div class="form-inline">
+          <input class="mr-sm-2" type="text" placeholder="Search" onchange="search(value)" aria-label="Search">
+        </div>
+    </nav>
 {{end}}
