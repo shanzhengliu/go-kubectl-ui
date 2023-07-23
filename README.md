@@ -1,5 +1,12 @@
 ## Introduction  
-This project is a really simple project for view the k8s resource status.
+Due to the complex set up process for dashboard and permission setting by the cluster owner, This project is a really simple project for view the k8s resource status. With this project, the new k8s learner can easily understand same main resource running in the cluster.
+
+2 key concepts should know before using this application.  
+
+1. `Context`: it means which cluster your are using. you can found the name in the file /{userHomeDir}/.kube/config 
+2. `Namespace`: it refers to the space for you to deploy the application. For example, there are a lot of teams in an organization, they will deploy their application under their namespace to confirm they won't affect the environment used by other team.  
+
+More details: https://kubernetes.io/docs/home/
 
 ## Function  
 1: Display Pod, Deployment, Configmap, Service, Ingress  
