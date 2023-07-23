@@ -64,6 +64,7 @@ func main() {
 	router.HandleFunc("/configmap", Chain(internal.ConfigMapListHandler, ContextAdd(ctx)))
 	router.HandleFunc("/ingress", Chain(internal.IngressListHandler, ContextAdd(ctx)))
 	router.HandleFunc("/pod", Chain(internal.PodListHandler, ContextAdd(ctx)))
+	router.HandleFunc("/service", Chain(internal.ServiceListHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/configmap-detail", Chain(internal.ConfigMapDetailHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/context-change", Chain(internal.ContextChangeHandler, ContextAdd(ctx)))
 	fmt.Println("listening 8080 port")

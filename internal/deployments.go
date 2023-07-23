@@ -10,6 +10,7 @@ import (
 type Deployment struct {
 	Name       string      `json:"name"`
 	Containers []Container `json:"containers"`
+	Selector   string      `json:"selector"`
 	Status     int32       `json:"status"`
 }
 
@@ -26,9 +27,11 @@ func DeploymentList(clientset *kubernetes.Clientset, namespace string) []Deploym
 	}
 	deploymentList := []Deployment{}
 	for _, item := range deployment.Items {
+		selectString := MapToString(item.Spec.Selector.MatchLabels)
 		deployment := &Deployment{
 			Name:       item.Name,
 			Containers: []Container{},
+			Selector:   selectString,
 			Status:     item.Status.AvailableReplicas,
 		}
 		for _, container := range item.Spec.Template.Spec.Containers {

@@ -31,3 +31,11 @@ func KubeconfigList(configPath string) map[string]*api.Context {
 	}
 	return config.Contexts
 }
+
+func MapToString(data map[string]string) string {
+	var result string
+	for key, value := range data {
+		result += key + ":" + value + "\n"
+	}
+	return result
+}

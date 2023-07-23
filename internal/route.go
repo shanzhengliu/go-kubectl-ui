@@ -86,6 +86,13 @@ func PodListHandler(w http.ResponseWriter, r *http.Request) {
 	TemplateRender(r.Context(), "pod", result, w, r)
 }
 
+func ServiceListHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
+	result := ServiceList(clientset, ctxMap["namespace"].(string))
+	TemplateRender(r.Context(), "service", result, w, r)
+}
+
 func ConfigMapDetailHandler(w http.ResponseWriter, r *http.Request) {
 	clientset := r.Context().Value("map").(map[string]interface{})["clientSet"].(*kubernetes.Clientset)
 	w.Header().Set("Content-Type", "application/json")

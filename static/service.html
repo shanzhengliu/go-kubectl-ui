@@ -10,21 +10,18 @@
     
         <table>
             <tr>
-                <th>Deployments</th>
-                <th>Containers</th>
+                <th>Service</th>
+                <th>Namespace</th>
+                <th>Type</th>
                 <th>Selector</th>
-                <th>Image</th>
-                <th>Status</th>
             </tr>
 		{{ range $base :=.ResultList }}
-            {{ range .Containers}}
             <tr class="tbbody">
                 <td>{{ $base.Name }}</td>
-                <td>{{ .Name }}</td> 
-                <td>{{ $base.Selector}}</td>
-                <td>{{ .Image }}</td> 
-                <td>{{$base.Status}}</td></tr>
-            {{ end }}        
+                <td>{{ $base.Namespace }}</td> 
+                <td>{{ $base.Type }}</td> 
+                <td>{{ $base.Selector }}</td>
+            </tr>
         {{end}}
         </table>
 	</body>
