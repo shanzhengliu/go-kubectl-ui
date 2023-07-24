@@ -6,10 +6,13 @@ import (
 	_ "embed"
 	"flag"
 	"fmt"
+	"io/fs"
 	"log"
 	"modules/internal"
 	"net/http"
 	"os/exec"
+
+	"github.com/gorilla/mux"
 )
 
 //go:embed static
@@ -64,7 +67,13 @@ func main() {
 		path = internal.Kubeconfig()
 	}
 	internal.RouteInit(ctx, path)
-	router := http.NewServeMux()
+	router := mux.NewRouter()
+
+	xtermFs, err := fs.Sub(static, "static")
+	if err != nil {
+		log.Fatal(err)
+	}
+	router.PathPrefix("/xterm/").Handler(http.FileServer(http.FS(xtermFs)))
 	router.HandleFunc("/", Chain(internal.DeploymentHandler, ContextAdd(ctx)))
 	router.HandleFunc("/deployment", Chain(internal.DeploymentHandler, ContextAdd(ctx)))
 	router.HandleFunc("/configmap", Chain(internal.ConfigMapListHandler, ContextAdd(ctx)))
@@ -76,6 +85,8 @@ func main() {
 	router.HandleFunc("/api/podLogs", Chain(internal.PodLogHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/podYaml", Chain(internal.PodtoYamlHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/deploymentYaml", Chain(internal.DeploymentYamlHandler, ContextAdd(ctx)))
+	router.HandleFunc("/webshell", Chain(internal.WebShellHandler, ContextAdd(ctx)))
+	router.HandleFunc("/ws/webshell", Chain(internal.ServeWsTerminalHandler, ContextAdd(ctx)))
 	fmt.Println("listening: " + port + " port")
 	fmt.Println("link: http://localhost:" + port)
 	log.Fatal(http.ListenAndServe(":"+port, router))

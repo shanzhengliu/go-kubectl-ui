@@ -4,12 +4,21 @@ import (
 	"context"
 	"embed"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"text/template"
 
+	terminal "github.com/maoqide/kubeutil/pkg/terminal"
+	wsterminal "github.com/maoqide/kubeutil/pkg/terminal/websocket"
 	"golang.org/x/exp/maps"
+	apiv1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/tools/remotecommand"
 )
 
 type RenderResult struct {
@@ -28,7 +37,9 @@ func RouteInit(ctx context.Context, path string) {
 	if err != nil {
 		panic(err)
 	}
+
 	ctxMap := ctx.Value("map").(map[string]interface{})
+	ctxMap["restConfig"] = config
 	ctxMap["configPath"] = path
 	ctxMap["clientSet"] = clientset
 	ctxMap["contextList"] = maps.Keys(KubeconfigList(path))
@@ -127,4 +138,91 @@ func DeploymentYamlHandler(w http.ResponseWriter, r *http.Request) {
 	yaml := DeploymentToYaml(clientset, ctxMap["namespace"].(string), r.URL.Query().Get("deployment"))
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write([]byte(yaml))
+}
+
+func WebShellHandler(w http.ResponseWriter, r *http.Request) {
+	// ctxMap := r.Context().Value("map").(map[string]interface{})
+	w.Header().Set("Content-Type", "text/html")
+	TemplateRender(r.Context(), "webshell", "", w, r)
+}
+
+func ServeWsTerminalHandler(w http.ResponseWriter, r *http.Request) {
+	cmd := []string{"sh"}
+	namespace := r.URL.Query().Get("namespace")
+	podName := r.URL.Query().Get("pod")
+	containerName := r.URL.Query().Get("container")
+	log.Printf("exec pod: %s, container: %s, namespace: %s\n", podName, containerName, namespace)
+
+	pty, err := wsterminal.NewTerminalSession(w, r, nil)
+	if err != nil {
+		log.Printf("get pty failed: %v\n", err)
+		return
+	}
+	defer func() {
+		log.Println("close session.")
+		pty.Close()
+	}()
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	client := ctxMap["clientSet"].(*kubernetes.Clientset)
+	if err != nil {
+		log.Printf("get kubernetes client failed: %v\n", err)
+		return
+	}
+	pod, err := client.CoreV1().Pods(namespace).Get(context.TODO(), podName, v1.GetOptions{})
+	if err != nil {
+		log.Printf("get kubernetes client failed: %v\n", err)
+		return
+	}
+	ok, err := terminal.ValidatePod(pod, containerName)
+	if !ok {
+		msg := fmt.Sprintf("Validate pod error! err: %v", err)
+		log.Println(msg)
+		pty.Write([]byte(msg))
+		pty.Done()
+		return
+	}
+	restConfig := ctxMap["restConfig"].(*rest.Config)
+
+	err = PodExec(client, restConfig, cmd, pty, namespace, podName, containerName)
+	if err != nil {
+		msg := fmt.Sprintf("Exec to pod error! err: %v", err)
+		log.Println(msg)
+		pty.Write([]byte(msg))
+		pty.Done()
+	}
+	return
+}
+
+func PodExec(clientset *kubernetes.Clientset, restconfig *rest.Config, cmd []string, ptyHandler terminal.PtyHandler, namespace string, podName string, containerName string) error {
+	defer func() {
+		ptyHandler.Done()
+	}()
+
+	req := clientset.CoreV1().RESTClient().Post().
+		Resource("pods").
+		Name(podName).
+		Namespace(namespace).
+		SubResource("exec")
+
+	req.VersionedParams(&apiv1.PodExecOptions{
+		Container: containerName,
+		Command:   cmd,
+		Stdin:     !(ptyHandler.Stdin() == nil),
+		Stdout:    !(ptyHandler.Stdout() == nil),
+		Stderr:    !(ptyHandler.Stderr() == nil),
+		TTY:       ptyHandler.Tty(),
+	}, scheme.ParameterCodec)
+
+	executor, err := remotecommand.NewSPDYExecutor(restconfig, "POST", req.URL())
+	if err != nil {
+		return err
+	}
+	err = executor.Stream(remotecommand.StreamOptions{
+		Stdin:             ptyHandler.Stdin(),
+		Stdout:            ptyHandler.Stdout(),
+		Stderr:            ptyHandler.Stderr(),
+		TerminalSizeQueue: ptyHandler,
+		Tty:               ptyHandler.Tty(),
+	})
+	return err
 }

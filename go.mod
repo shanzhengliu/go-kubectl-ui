@@ -8,6 +8,12 @@ require (
 )
 
 require (
+	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/maoqide/kubeutil v0.0.0-20220210012256-6f6f2b995256 // indirect
+	github.com/moby/spdystream v0.2.0 // indirect
+)
+
+require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emicklei/go-restful/v3 v3.9.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
@@ -20,7 +26,8 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/imdario/mergo v0.3.6 // indirect
+	github.com/gorilla/mux v1.8.0
+	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -46,5 +53,5 @@ require (
 	k8s.io/utils v0.0.0-20230209194617-a36077c30491 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
+	sigs.k8s.io/yaml v1.3.0
 )
