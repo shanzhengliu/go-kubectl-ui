@@ -3,13 +3,13 @@ module modules
 go 1.20
 
 require (
+	github.com/maoqide/kubeutil v0.0.0-20220210012256-6f6f2b995256
 	k8s.io/apimachinery v0.27.3
 	k8s.io/client-go v0.27.3
 )
 
 require (
 	github.com/gorilla/websocket v1.4.2 // indirect
-	github.com/maoqide/kubeutil v0.0.0-20220210012256-6f6f2b995256 // indirect
 	github.com/moby/spdystream v0.2.0 // indirect
 )
 

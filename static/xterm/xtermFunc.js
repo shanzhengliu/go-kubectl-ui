@@ -15,12 +15,12 @@ function connect(){
 	pod=getQueryVariable("pod")
 	container=getQueryVariable("container")
 	console.log(namespace ,pod ,container)
-	if (namespace == false || pod == false || container == false) {
+	if ( pod == false || container == false) {
 		alert("can't read container")
 		return
 	}
 	console.log(namespace ,pod ,container)
-	url = "ws://"+document.location.host+"/ws/webshell?namespace="+namespace+"&pod="+pod+"&container="+container
+	url = "ws://"+document.location.host+"/ws/webshell?pod="+pod+"&container="+container
 	console.log(url);
 	let term = new Terminal({
 		"cursorBlink":true,

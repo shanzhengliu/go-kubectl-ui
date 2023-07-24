@@ -141,18 +141,16 @@ func DeploymentYamlHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func WebShellHandler(w http.ResponseWriter, r *http.Request) {
-	// ctxMap := r.Context().Value("map").(map[string]interface{})
 	w.Header().Set("Content-Type", "text/html")
 	TemplateRender(r.Context(), "webshell", "", w, r)
 }
 
 func ServeWsTerminalHandler(w http.ResponseWriter, r *http.Request) {
 	cmd := []string{"sh"}
-	namespace := r.URL.Query().Get("namespace")
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	namespace := ctxMap["namespace"].(string)
 	podName := r.URL.Query().Get("pod")
 	containerName := r.URL.Query().Get("container")
-	log.Printf("exec pod: %s, container: %s, namespace: %s\n", podName, containerName, namespace)
-
 	pty, err := wsterminal.NewTerminalSession(w, r, nil)
 	if err != nil {
 		log.Printf("get pty failed: %v\n", err)
@@ -162,7 +160,6 @@ func ServeWsTerminalHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("close session.")
 		pty.Close()
 	}()
-	ctxMap := r.Context().Value("map").(map[string]interface{})
 	client := ctxMap["clientSet"].(*kubernetes.Clientset)
 	if err != nil {
 		log.Printf("get kubernetes client failed: %v\n", err)

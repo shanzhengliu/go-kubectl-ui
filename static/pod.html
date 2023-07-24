@@ -36,6 +36,7 @@
                 <td>{{ $base.CreateTime }}</td>
                 <td><a  type="button" class="btn btn-primary" target="_blank" href="/api/podLogs?pod={{ $base.Name}}&container={{.ContainerName}}">View Log</a></td>
                 <td><a  type="button" class="btn btn-primary" target="_blank" href="/api/podYaml?pod={{ $base.Name}}">Yaml</a></td>
+                <td><a  type="button" class="btn btn-secondary" target="_blank" href="/webshell?pod={{ $base.Name}}&container={{.ContainerName}}">Connect WebShell</a></td>
             </tr> 
             {{end}}      
         {{end}}
