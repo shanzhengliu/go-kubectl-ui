@@ -6,14 +6,32 @@
     <script src="/xterm/xterm.js"></script>
     <script src="/xterm/xtermFunc.js"></script>
     <script src="/xterm/xterm-addon-fit.js"></script>
+    <style>
+		h1 {
+ 		   text-align: center;
+		}
+	    #terminal .terminal.xterm {
+			height: 100%;
+	    }
+	    #terminal .xterm-viewport {
+			height: calc(100vh);
+	    }
+		#terminal {
+			height: calc(100vh);
+			width: 100%;
+			padding: 0%;
+			padding-bottom: 5%;
+			margin: 0%;
+	    }
+	</style>
 </head>
-<body>
-<div id="terminal"></div>
-<script>
-	window.onload = function () {
-		// Terminal.applyAddon(fit);
-		connect();
-	};
-</script>
+<body style="border-width: 0;margin: 0">
+    <div id="terminal"></div>
+    <script>
+        window.onload = function () {
+            Terminal.applyAddon(fit);
+            connect();
+        };
+    </script>
 </body>
 </html>
