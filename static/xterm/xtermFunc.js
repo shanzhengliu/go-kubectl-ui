@@ -28,7 +28,7 @@ function connect(){
 	if (window["WebSocket"]) {
 		term.open(document.getElementById("terminal"));
 		term.write("connecting to pod "+ pod + "...")
-		// term.fit();
+		term.fit();
 		// term.toggleFullScreen(true);
 		term.on('data', function (data) {
 			msg = {operation: "stdin", data: data}
