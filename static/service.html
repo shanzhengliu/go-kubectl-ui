@@ -4,6 +4,27 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         {{template "style"}}
 		<title>Local DashBoard</title>
+        <script>
+                function childrenExport(){
+                    var exportMap = []
+                
+                    var typeName = "service"
+                    document.querySelectorAll(".item-check").forEach(function(item){
+                                if(item.checked == true){
+                                    var mapList =String(item.value).split("||")
+                                    var tempMap = {}
+                                    tempMap = {
+                                        "name": mapList[0],
+                                        "selector": mapList[1].trim(),
+                                        "type": mapList[2]
+                                    }
+                                    exportMap.push(tempMap)
+                                };
+
+                    })
+                    downloadJSONFile(exportMap, "export-"+typeName+"-"+new Date().getTime()+".json")
+             }
+        </script>
 	</head>
 	<body>
         {{template "contextSwitch" .}}
@@ -11,6 +32,7 @@
     
         <table  class="table">
             <tr>
+                <th><input  onchange="selectChange(value)" class="form-check-input" type="checkbox" value="select-all" id="select-all"></th>
                 <th>Service</th>
                 <th>NameSpace</th>
                 <th>Type</th>
@@ -18,7 +40,8 @@
             </tr>
 		{{ range $base :=.ResultList }}
             <tr class="tbbody">
-                <td>{{ $base.Name }}</td>
+                <td><input class="form-check-input item-check " type="checkbox" value="{{ $base.Name }}||{{ $base.Selector }}||{{ $base.Type}}" id="{{ $base.Name }}||{{ $base.Selector }}||{{ $base.Type}}"></td>
+                <td >{{ $base.Name }}</td>
                 <td>{{ $base.Namespace }}</td> 
                 <td>{{ $base.Type }}</td> 
                 <td>{{ $base.Selector }}</td>

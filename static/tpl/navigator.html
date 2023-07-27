@@ -1,5 +1,16 @@
 {{define "navigator"}}
-  <script>       
+  <script> 
+        function downloadJSONFile(exportMap, fileName){
+          var blob = new Blob([JSON.stringify(exportMap, undefined, 4)], {type: 'text/json'}),
+          e = document.createEvent('MouseEvents'),
+          a = document.createElement('a')
+          a.download = fileName
+          a.href = window.URL.createObjectURL(blob)
+          a.dataset.downloadurl = ['text/json', a.download, a.href].join(':')
+          e.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+          a.dispatchEvent(e)
+        }
+  
         function search(value){
             var tr = document.querySelectorAll('.tbbody')
             tr.forEach(element => {
@@ -15,6 +26,34 @@
                 element.style.display = "table-row"
               }
             });
+        }
+
+        function exportFunc(){
+          try{
+          childrenExport()
+          }
+          catch(e){
+            console.log("childrenExport is not defined, please define it in your page")
+          }
+        }
+
+        
+        function selectChange(value){
+                var checked = document.querySelector("#select-all").checked;
+                if(checked == false){
+                    document.querySelectorAll(".item-check").forEach(function(item){
+                        if(item.parentElement.parentElement.style.display != "none"){
+                            item.checked = false;
+                        } 
+                    })
+                }
+                else{
+                    document.querySelectorAll(".item-check").forEach(function(item){
+                        if(item.parentElement.parentElement.style.display != "none"){
+                            item.checked = true;
+                        } 
+                    })
+                }
         }
   </script>
     <nav class="navbar navbar-expand-lg justify-content-between">
@@ -36,6 +75,7 @@
           </li>
         </ul>
         <div class="form-inline">
+          <button class="btn btn-success" type="button" onclick="exportFunc()" aria-label="Export">Export</button>
           <input class="mr-sm-2" type="text" placeholder="Search" onchange="search(value)" aria-label="Search">
         </div>
     </nav>

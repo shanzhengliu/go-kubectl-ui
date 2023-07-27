@@ -4,6 +4,26 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         {{template "style"}}
 		<title>Local DashBoard</title>
+        <script>
+             function childrenExport(){
+                    var exportMap = {}
+                    var returnMap = []
+                    var typeName = "deployment"
+                    document.querySelectorAll(".item-check").forEach(function(item){
+                                if(item.checked == true){
+                                    var mapList =String(item.value).split("||")
+                                    if(exportMap[mapList[0]] == undefined){
+                                        exportMap[mapList[0]] = [mapList[1]]
+                                    }
+                                    else{
+                                        exportMap[mapList[0]].push(mapList[1])
+                                    }    
+                                };
+
+                    })
+                    downloadJSONFile(exportMap, "export-"+typeName+"-"+new Date().getTime()+".json")
+             }
+        </script>
 	</head>
 	<body>
         {{template "contextSwitch" .}}
@@ -11,6 +31,7 @@
     
         <table  class="table">
             <tr>
+                <th><input  onchange="selectChange(value)" class="form-check-input" type="checkbox" value="select-all" id="select-all"></th>
                 <th>Deployments</th>
                 <th>Containers</th>
                 <th>Selector</th>
@@ -21,6 +42,7 @@
 		{{ range $base :=.ResultList }}
             {{ range .Containers}}
             <tr class="tbbody">
+                <td><input class="form-check-input item-check " type="checkbox" value="{{ $base.Name }}||{{ .Image }}" id="{{ $base.Name }}||{{ .Image }}"></td>
                 <td>{{ $base.Name }}</td>
                 <td>{{ .Name }}</td> 
                 <td>{{ $base.Selector}}</td>
