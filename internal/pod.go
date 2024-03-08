@@ -19,9 +19,10 @@ type Pod struct {
 }
 
 type PodImage struct {
-	ContainerName string `json:"containerName"`
-	Name          string `json:"name"`
-	Id            string `json:"id"`
+	ContainerName   string `json:"containerName"`
+	Name            string `json:"name"`
+	Id              string `json:"id"`
+	ContainerStatus string `json:"containerStatus"`
 }
 
 func PodList(clientset *kubernetes.Clientset, namespace string) []Pod {
@@ -34,11 +35,13 @@ func PodList(clientset *kubernetes.Clientset, namespace string) []Pod {
 	for _, item := range pod.Items {
 		containers := item.Status.ContainerStatuses
 		returnImages := []PodImage{}
+
 		for _, container := range containers {
 			tempPodImage := &PodImage{
-				Name:          container.Image,
-				Id:            container.ImageID,
-				ContainerName: container.Name,
+				Name:            container.Image,
+				Id:              container.ImageID,
+				ContainerName:   container.Name,
+				ContainerStatus: calculateRunningState(container.State),
 			}
 			returnImages = append(returnImages, *tempPodImage)
 		}
@@ -91,4 +94,17 @@ func PodtoYaml(clientset *kubernetes.Clientset, namespace string, name string) s
 		panic(err.Error())
 	}
 	return string(podYamlString)
+}
+
+func calculateRunningState(state v1.ContainerState) string {
+	if state.Running != nil {
+		return "Running"
+	}
+	if state.Terminated != nil {
+		return "Terminated"
+	}
+	if state.Waiting != nil {
+		return "Waiting"
+	}
+	return "Unknown"
 }

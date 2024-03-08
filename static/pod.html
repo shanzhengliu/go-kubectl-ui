@@ -33,7 +33,7 @@
                 <td>{{ .ContainerName}} </td>
                 <td>{{ .Name }}</td>
                 <td>{{ .Id }}</td>
-                <td>{{ $base.Status }}</td>
+                <td>{{ .ContainerStatus }}</td>
                 <td>{{ $base.CreateTime }}</td>
                 <td><a  type="button" class="btn btn-primary" target="_blank" href="/api/podLogs?pod={{ $base.Name}}&container={{.ContainerName}}">View Log</a></td>
                 <td><a  type="button" class="btn btn-primary" target="_blank" href="/api/podYaml?pod={{ $base.Name}}">Yaml</a></td>
