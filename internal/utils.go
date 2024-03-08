@@ -3,7 +3,6 @@ package internal
 import (
 	"flag"
 	"path/filepath"
-
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
 	"k8s.io/client-go/util/homedir"
@@ -39,3 +38,56 @@ func MapToString(data map[string]string) string {
 	}
 	return result
 }
+
+
+// func encrypt(text string, key []byte) (string, error) {
+//     plaintext := []byte(text)
+
+//     block, err := aes.NewCipher(key)
+//     if err != nil {
+//         return "", err
+//     }
+
+//     aesGCM, err := cipher.NewGCM(block)
+//     if err != nil {
+//         return "", err
+//     }
+
+//     nonce := make([]byte, aesGCM.NonceSize())
+//     if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+//         return "", err
+//     }
+
+//     ciphertext := aesGCM.Seal(nonce, nonce, plaintext, nil)
+//     return base64.URLEncoding.EncodeToString(ciphertext), nil
+// }
+
+// func decrypt(encryptedText string, key []byte) (string, error) {
+//     enc, err := base64.URLEncoding.DecodeString(encryptedText)
+//     if err != nil {
+//         return "", err
+//     }
+
+//     block, err := aes.NewCipher(key)
+//     if err != nil {
+//         return "", err
+//     }
+
+//     aesGCM, err := cipher.NewGCM(block)
+//     if err != nil {
+//         return "", err
+//     }
+
+//     nonceSize := aesGCM.NonceSize()
+//     if len(enc) < nonceSize {
+//         return "", fmt.Errorf("ciphertext too short")
+//     }
+
+//     nonce, ciphertext := enc[:nonceSize], enc[nonceSize:]
+//     plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
+//     if err != nil {
+//         return "", err
+//     }
+
+//     return string(plaintext), nil
+// }

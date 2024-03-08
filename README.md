@@ -28,7 +28,7 @@ and access the `http://localhost:8080/`
 | config   | minikube                | True     | user default context. eg: minikube           |
 | port      | 8080                    | True     | application running port eg:8080.            |
 | path      | {homeDir}/.kube/config | True     | use kube config path. eg: /root/.kube/config |
-
+| path      |       | True     | website page protect |
 ## Docker  
 Docker image can also work by running   
 `docker build . -t go-kubectl-ui`  

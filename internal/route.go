@@ -67,6 +67,10 @@ func RenderResultInit(ctx context.Context, resultList interface{}) *RenderResult
 	return renderResult
 }
 
+func AuthHandler(w http.ResponseWriter, r *http.Request) {
+	 TemplateRender(r.Context(), "auth", "", w, r)
+}
+
 func DeploymentHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
@@ -222,4 +226,22 @@ func PodExec(clientset *kubernetes.Clientset, restconfig *rest.Config, cmd []str
 		Tty:               ptyHandler.Tty(),
 	})
 	return err
+}
+
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	websitePassword := ctxMap["websitePassword"].(string)
+	if websitePassword == "" {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("true"))
+		return
+	}
+    password := r.URL.Query().Get("password")
+	if websitePassword == password {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("true"))
+	} else {
+		w.WriteHeader(401)
+		w.Write([]byte("false"))
+	}
 }

@@ -55,23 +55,28 @@
                     })
                 }
         }
+
+        function navTo(event,url){
+          event.preventDefault()
+          window.location.href = url
+        }
   </script>
     <nav class="navbar navbar-expand-lg justify-content-between">
         <ul class="navbar-nav">
           <li class="nav-item">
-            <a class="nav-link" href="/pod">Pod</a>
+            <a class="nav-link" href="/pod" onclick="navTo(event,'/pod')">Pod</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/deployment">Deployment</a>
+            <a class="nav-link" href="/deployment" onclick="navTo(event,'/deployment')" >Deployment</a>
           </li>
           <li class="nav-item">
-            <a  class="nav-link" href="/service">Service</a>
+            <a  class="nav-link" href="/service" onclick="navTo(event,'/service')"  >Service</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/configmap">Configmap</a>
+            <a class="nav-link" href="/configmap" onclick="navTo(event,'/configmap')"  >Configmap</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/ingress">Ingress</a>
+            <a class="nav-link" href="/ingress" onclick="navTo(event,'/ingress')">Ingress</a>
           </li>
         </ul>
         <div class="form-inline">
