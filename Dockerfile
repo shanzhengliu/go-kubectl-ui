@@ -1,31 +1,29 @@
+
 FROM golang:1.20.6-alpine3.18 AS BuildStage
 
 WORKDIR /app
-
 COPY . .
-
+RUN apk --no-cache add upx
 RUN go mod download
-
-RUN go build -o /app/main .
+RUN go build -ldflags="-s -w" -o /app/main .
+RUN upx /app/main
 
 FROM alpine:latest as ENVStage
 
 RUN apk --no-cache add curl
 
-RUN apk add git
-
-RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && \
+RUN OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
+    ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/aarch64/arm64/' -e 's/armv[0-9]*/arm/')" && \
+    curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/${ARCH}/kubectl" && \
     chmod +x ./kubectl && \
-    mv ./kubectl /usr/local/bin/kubectl 
+    mv ./kubectl /usr/local/bin/kubectl && \
+    KUBELOGIN="kubelogin_${OS}_${ARCH}" && \
+    echo "Downloading kubelogin ${KUBELOGIN}" && \
+    curl -fsSLO "https://github.com/int128/kubelogin/releases/download/v1.28.0/${KUBELOGIN}.zip" && \
+    unzip "${KUBELOGIN}.zip" && \
+    mv "./kubelogin" "/usr/local/bin/kubectl-oidc_login"
 
-COPY  krew-install.sh /root/kube/krew-install.sh
-
-RUN command chmod +x /root/kube/krew-install.sh && \
-    /root/kube/krew-install.sh
-
-ENV PATH="${PATH}:/root/.krew/bin"   
-
-RUN kubectl krew install oidc-login
+FROM busybox:1.35.0-uclibc as BUSYBOX    
 
 FROM gcr.io/distroless/static
 
@@ -35,13 +33,13 @@ COPY --from=BuildStage app/ app/
 
 COPY config /root/kube/.config
 
-COPY --from=ENVStage /root/.krew /root/.krew
+COPY --from=BUSYBOX /bin/sh /bin/sh
+
+COPY --from=BUSYBOX /bin/ls /bin/ls
 
 COPY --from=ENVStage /usr/local/bin/kubectl  /usr/local/bin/kubectl
 
-COPY --from=ENVStage /root/.krew/bin  /root/.krew/bin
-
-ENV PATH="${PATH}:/root/.krew/bin"
+COPY --from=ENVStage /usr/local/bin/kubectl-oidc_login  /usr/local/bin/kubectl-oidc_login
 
 EXPOSE 8080
 
