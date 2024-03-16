@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	v1 "k8s.io/api/core/v1"
@@ -29,7 +30,7 @@ func PodList(clientset *kubernetes.Clientset, namespace string) []Pod {
 	podListClient := clientset.CoreV1().Pods(namespace)
 	pod, error := podListClient.List(context.TODO(), apiv1.ListOptions{})
 	if error != nil {
-		panic(error.Error())
+		fmt.Println(error.Error())
 	}
 	podList := []Pod{}
 	for _, item := range pod.Items {
@@ -62,7 +63,7 @@ func PodLog(clientset *kubernetes.Clientset, namespace string, name string, cont
 	podClient := clientset.CoreV1().Pods(namespace)
 	stream, err := podClient.GetLogs(name, &v1.PodLogOptions{Container: container}).Stream(context.TODO())
 	if err != nil {
-		panic(err.Error())
+		fmt.Println(err.Error())
 	}
 	message := ""
 	for {
@@ -75,7 +76,7 @@ func PodLog(clientset *kubernetes.Clientset, namespace string, name string, cont
 			continue
 		}
 		if err != nil {
-			panic(err.Error())
+			fmt.Println(err.Error())
 		}
 		message += string(buf[:numBytes])
 	}
@@ -87,11 +88,11 @@ func PodtoYaml(clientset *kubernetes.Clientset, namespace string, name string) s
 	podClient := clientset.CoreV1().Pods(namespace)
 	pod, err := podClient.Get(context.Background(), name, apiv1.GetOptions{})
 	if err != nil {
-		panic(err.Error())
+		fmt.Println(err.Error())
 	}
 	podYamlString, err := yaml.Marshal(pod)
 	if err != nil {
-		panic(err.Error())
+		fmt.Println(err.Error())
 	}
 	return string(podYamlString)
 }

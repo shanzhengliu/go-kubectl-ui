@@ -2,7 +2,9 @@ package internal
 
 import (
 	"flag"
+	"fmt"
 	"path/filepath"
+
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
 	"k8s.io/client-go/util/homedir"
@@ -26,7 +28,7 @@ func KubeconfigList(configPath string) map[string]*api.Context {
 			CurrentContext: "",
 		}).RawConfig()
 	if err != nil {
-		panic(err.Error())
+		fmt.Println(err.Error())
 	}
 	return config.Contexts
 }
@@ -38,7 +40,6 @@ func MapToString(data map[string]string) string {
 	}
 	return result
 }
-
 
 // func encrypt(text string, key []byte) (string, error) {
 //     plaintext := []byte(text)

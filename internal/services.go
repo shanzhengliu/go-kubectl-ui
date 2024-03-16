@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"fmt"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -18,7 +19,7 @@ func ServiceList(clientset *kubernetes.Clientset, namespace string) []Service {
 	servicesClient := clientset.CoreV1().Services(namespace)
 	service, error := servicesClient.List(context.TODO(), v1.ListOptions{})
 	if error != nil {
-		panic(error.Error())
+		fmt.Println(error.Error())
 	}
 
 	serviceList := []Service{}

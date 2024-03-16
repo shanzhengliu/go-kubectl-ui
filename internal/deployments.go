@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"fmt"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -24,7 +25,7 @@ func DeploymentList(clientset *kubernetes.Clientset, namespace string) []Deploym
 	deploymentsClient := clientset.AppsV1().Deployments(namespace)
 	deployment, error := deploymentsClient.List(context.TODO(), v1.ListOptions{})
 	if error != nil {
-		panic(error.Error())
+		fmt.Println(error.Error())
 	}
 	deploymentList := []Deployment{}
 	for _, item := range deployment.Items {
@@ -52,11 +53,11 @@ func DeploymentToYaml(clientset *kubernetes.Clientset, namespace string, name st
 	deploymentsClient := clientset.AppsV1().Deployments(namespace)
 	deployment, error := deploymentsClient.Get(context.TODO(), name, v1.GetOptions{})
 	if error != nil {
-		panic(error.Error())
+		fmt.Println(error.Error())
 	}
 	deploymentYaml, err := yaml.Marshal(deployment)
 	if err != nil {
-		panic(err.Error())
+		fmt.Println(err.Error())
 	}
 	return string(deploymentYaml)
 }

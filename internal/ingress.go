@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"fmt"
 
 	apiv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -21,7 +22,7 @@ func IngressList(clientset *kubernetes.Clientset, namespace string) []Ingress {
 	ingressListClient := clientset.NetworkingV1().Ingresses(namespace)
 	ingress, error := ingressListClient.List(context.TODO(), apiv1.ListOptions{})
 	if error != nil {
-		panic(error.Error())
+		fmt.Println(error.Error())
 	}
 	ingressList := []Ingress{}
 

@@ -111,7 +111,7 @@ func main() {
 
 	router.PathPrefix("/xterm/").Handler(http.FileServer(http.FS(subFs)))
 	router.PathPrefix("/js/").Handler(http.FileServer(http.FS(subFs)))
-	router.HandleFunc("/", Chain(internal.DeploymentHandler, ContextAdd(ctx)))
+	router.HandleFunc("/", Chain(internal.ResourceUseageHandler, ContextAdd(ctx)))
 	router.HandleFunc("/auth", Chain(internal.AuthHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/login", Chain(internal.LoginHandler, ContextAdd(ctx)))
 	router.HandleFunc("/deployment", Chain(internal.DeploymentHandler, ContextAdd(ctx)))
@@ -119,6 +119,7 @@ func main() {
 	router.HandleFunc("/ingress", Chain(internal.IngressListHandler, ContextAdd(ctx)))
 	router.HandleFunc("/pod", Chain(internal.PodListHandler, ContextAdd(ctx)))
 	router.HandleFunc("/service", Chain(internal.ServiceListHandler, ContextAdd(ctx)))
+	router.HandleFunc("/resource", Chain(internal.ResourceUseageHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/configmap-detail", Chain(internal.ConfigMapDetailHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/context-change", Chain(internal.ContextChangeHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/podLogs", Chain(internal.PodLogHandler, ContextAdd(ctx)))

@@ -31,11 +31,11 @@ type RenderResult struct {
 func RouteInit(ctx context.Context, path string) {
 	config, err := clientcmd.BuildConfigFromFlags("", path)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	ctxMap := ctx.Value("map").(map[string]interface{})
@@ -51,7 +51,7 @@ func TemplateRender(ctx context.Context, path string, resultList interface{}, w 
 
 	template, err := template.ParseFS(tplblob, "static/"+path+".html", "static/tpl/navigator.html", "static/tpl/contextSwitch.html", "static/tpl/style.html")
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 	template.Execute(w, RenderResultInit(ctx, resultList))
 }
@@ -249,4 +249,11 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(401)
 		w.Write([]byte("false"))
 	}
+}
+
+func ResourceUseageHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
+	result := ResourceList(clientset, ctxMap["namespace"].(string))
+	TemplateRender(r.Context(), "resource-usage", result, w, r)
 }

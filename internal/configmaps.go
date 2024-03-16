@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"fmt"
 
 	apiv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -16,7 +17,7 @@ func ConfigMapList(clientset *kubernetes.Clientset, namespace string) []ConfigMa
 	configMapListClient := clientset.CoreV1().ConfigMaps(namespace)
 	configMap, error := configMapListClient.List(context.TODO(), apiv1.ListOptions{})
 	if error != nil {
-		panic(error.Error())
+		fmt.Println(error.Error())
 	}
 	configMapList := []ConfigMap{}
 	for _, item := range configMap.Items {
@@ -33,7 +34,7 @@ func ConfigMapDetail(clientset *kubernetes.Clientset, namespace string, name str
 	configMapListClient := clientset.CoreV1().ConfigMaps(namespace)
 	configMap, error := configMapListClient.Get(context.TODO(), name, apiv1.GetOptions{})
 	if error != nil {
-		panic(error.Error())
+		fmt.Println(error.Error())
 	}
 	return configMap.Data
 }

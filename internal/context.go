@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"fmt"
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -21,7 +22,7 @@ func ContextChange(ctx context.Context, contextName string, namespace string) {
 	path := ctxMap["configPath"].(string)
 	restconfig, err := buildConfigFromFlags(contextName, path)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 	clientset, err := kubernetes.NewForConfig(restconfig)
 	ctxMap["clientSet"] = clientset
