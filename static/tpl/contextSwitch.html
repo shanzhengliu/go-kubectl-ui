@@ -17,7 +17,11 @@
     }
 </script>
 <br/>
-Context: <span style="color: red;"> {{.CurrentContext}} </span>&nbsp;Namespace: <span style="color: red;"> {{.Namespace}}</span>&nbsp;<button class="btn btn-primary" onclick="showConfigDalog()">config switch</button>
+Context: <span style="color: red;"> {{.CurrentContext}} </span>
+&nbsp;Namespace: <span style="color: red;"> {{.Namespace}}</span>
+&nbsp;<button class="btn btn-primary" onclick="showConfigDalog()">config switch</button>
+&nbsp;<a class="btn btn-warning"  href="/localshell" target="_blank" >Docker Shell</a>
+
 <dialog style="width: 400px; height:300px;" id="configDalog">
     <div style="width: 300px; height:200px; text-align: center; ">
         <table class="table">

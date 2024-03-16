@@ -21,21 +21,15 @@ RUN OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     echo "Downloading kubelogin ${KUBELOGIN}" && \
     curl -fsSLO "https://github.com/int128/kubelogin/releases/download/v1.28.0/${KUBELOGIN}.zip" && \
     unzip "${KUBELOGIN}.zip" && \
-    mv "./kubelogin" "/usr/local/bin/kubectl-oidc_login"
+    mv "./kubelogin" "/usr/local/bin/kubectl-oidc_login"  
 
-FROM busybox:1.35.0-uclibc as BUSYBOX    
-
-FROM gcr.io/distroless/static
+FROM alpine:latest
 
 WORKDIR /app
 
 COPY --from=BuildStage app/ app/
 
 COPY config /root/kube/.config
-
-COPY --from=BUSYBOX /bin/sh /bin/sh
-
-COPY --from=BUSYBOX /bin/ls /bin/ls
 
 COPY --from=ENVStage /usr/local/bin/kubectl  /usr/local/bin/kubectl
 

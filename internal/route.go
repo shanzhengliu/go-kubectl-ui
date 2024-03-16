@@ -68,7 +68,7 @@ func RenderResultInit(ctx context.Context, resultList interface{}) *RenderResult
 }
 
 func AuthHandler(w http.ResponseWriter, r *http.Request) {
-	 TemplateRender(r.Context(), "auth", "", w, r)
+	TemplateRender(r.Context(), "auth", "", w, r)
 }
 
 func DeploymentHandler(w http.ResponseWriter, r *http.Request) {
@@ -147,6 +147,11 @@ func DeploymentYamlHandler(w http.ResponseWriter, r *http.Request) {
 func WebShellHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	TemplateRender(r.Context(), "webshell", "", w, r)
+}
+
+func LocalShellHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	TemplateRender(r.Context(), "localshell", "", w, r)
 }
 
 func ServeWsTerminalHandler(w http.ResponseWriter, r *http.Request) {
@@ -236,7 +241,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("true"))
 		return
 	}
-    password := r.URL.Query().Get("password")
+	password := r.URL.Query().Get("password")
 	if websitePassword == password {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("true"))

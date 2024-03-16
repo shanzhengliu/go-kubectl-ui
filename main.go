@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	_ "embed"
+	"encoding/base64"
 	"flag"
 	"fmt"
 	"io/fs"
@@ -12,7 +13,9 @@ import (
 	"net/http"
 	"os/exec"
 
+	"github.com/creack/pty"
 	"github.com/gorilla/mux"
+	"github.com/olahol/melody"
 )
 
 //go:embed static
@@ -76,6 +79,36 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	c := exec.Command("sh")
+	f, err := pty.Start(c)
+	if err != nil {
+		log.Printf("start pty failed: %v\n", err)
+		return
+	}
+	m := melody.New()
+	go func() {
+		for {
+			buff := make([]byte, 4096)
+			read, err := f.Read(buff)
+			if err != nil {
+				return
+			}
+			encodedMsg := base64.StdEncoding.EncodeToString(buff[:read])
+			m.Broadcast([]byte(encodedMsg))
+
+		}
+	}()
+
+	m.HandleMessage(func(s *melody.Session, msg []byte) {
+		decodedMsg, err := base64.StdEncoding.DecodeString(string(msg))
+		if err != nil {
+			log.Printf("decode message failed: %v\n", err)
+			return
+		}
+		f.Write(decodedMsg)
+	})
+
 	router.PathPrefix("/xterm/").Handler(http.FileServer(http.FS(subFs)))
 	router.PathPrefix("/js/").Handler(http.FileServer(http.FS(subFs)))
 	router.HandleFunc("/", Chain(internal.DeploymentHandler, ContextAdd(ctx)))
@@ -92,7 +125,9 @@ func main() {
 	router.HandleFunc("/api/podYaml", Chain(internal.PodtoYamlHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/deploymentYaml", Chain(internal.DeploymentYamlHandler, ContextAdd(ctx)))
 	router.HandleFunc("/webshell", Chain(internal.WebShellHandler, ContextAdd(ctx)))
+	router.HandleFunc("/localshell", Chain(internal.LocalShellHandler, ContextAdd(ctx)))
 	router.HandleFunc("/ws/webshell", Chain(internal.ServeWsTerminalHandler, ContextAdd(ctx)))
+	router.HandleFunc("/ws/localshell", Chain(func(w http.ResponseWriter, r *http.Request) { m.HandleRequest(w, r) }, ContextAdd(ctx)))
 	fmt.Println("listening: " + port + " port")
 	fmt.Println("link: http://localhost:" + port)
 	log.Fatal(http.ListenAndServe(":"+port, router))
