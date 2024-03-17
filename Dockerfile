@@ -5,7 +5,7 @@ WORKDIR /app
 COPY . .
 RUN apk --no-cache add upx
 RUN go mod download
-RUN go build -ldflags="-s -w" -o /app/main .
+RUN go build -o /app/main .
 RUN upx /app/main
 
 FROM alpine:latest as ENVStage
@@ -21,7 +21,10 @@ RUN OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     echo "Downloading kubelogin ${KUBELOGIN}" && \
     curl -fsSLO "https://github.com/int128/kubelogin/releases/download/v1.28.0/${KUBELOGIN}.zip" && \
     unzip "${KUBELOGIN}.zip" && \
-    mv "./kubelogin" "/usr/local/bin/kubectl-oidc_login"  
+    mv "./kubelogin" "/usr/local/bin/kubectl-oidc_login"  && \ 
+    curl -LO  "https://get.helm.sh/helm-v3.14.3-${OS}-${ARCH}.tar.gz" && \
+    tar -zxvf "helm-v3.14.3-${OS}-${ARCH}.tar.gz" && \
+    mv "${OS}-${ARCH}/helm" /usr/local/bin/helm
 
 FROM alpine:latest
 
@@ -32,6 +35,8 @@ COPY --from=BuildStage app/ app/
 COPY config /root/kube/.config
 
 COPY --from=ENVStage /usr/local/bin/kubectl  /usr/local/bin/kubectl
+
+COPY --from=ENVStage /usr/local/bin/helm  /usr/local/bin/helm
 
 COPY --from=ENVStage /usr/local/bin/kubectl-oidc_login  /usr/local/bin/kubectl-oidc_login
 

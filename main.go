@@ -13,6 +13,8 @@ import (
 	"net/http"
 	"os/exec"
 
+	"os"
+
 	"github.com/creack/pty"
 	"github.com/gorilla/mux"
 	"github.com/olahol/melody"
@@ -59,6 +61,26 @@ func main() {
 	flag.StringVar(&path, "path", "NONE", "path: eg: /root/.kube/config")
 	flag.StringVar(&websitePassword, "websitePassword", "", "password: eg: 123456")
 	flag.Parse()
+	if os.Getenv("KUBE_CONFIG") != "" {
+		config = os.Getenv("KUBE_CONFIG")
+	}
+	if os.Getenv("KUBE_NAMESPACE") != "" {
+		namespace = os.Getenv("KUBE_NAMESPACE")
+	}
+
+	if os.Getenv("KUBE_PORT") != "" {
+		port = os.Getenv("KUBE_PORT")
+	}
+	if os.Getenv("KUBE_CONFIG_PATH") != "" {
+		path = os.Getenv("KUBE_CONFIG_PATH")
+	}
+	if os.Getenv("KUBE_WEBSITE_PASSWORD") != "" {
+		websitePassword = os.Getenv("KUBE_WEBSITE_PASSWORD")
+	}
+	fmt.Println("config: " + config)
+	fmt.Println("namespace: " + namespace)
+	fmt.Println("port: " + port)
+	fmt.Println("path: " + path)
 	cmd := exec.Command("kubectl", "config", "use-context", config)
 	err := cmd.Run()
 	// if err != nil {
