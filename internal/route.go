@@ -71,40 +71,52 @@ func AuthHandler(w http.ResponseWriter, r *http.Request) {
 	TemplateRender(r.Context(), "auth", "", w, r)
 }
 
+func ReturnTypeHandler(context context.Context, resultList interface{}, name string, w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get("Content-Type") == "application/json" {
+		w.Header().Set("Content-Type", "application/json")
+		jsonData, err := json.Marshal(resultList)
+		if err != nil {
+			fmt.Println(err)
+		}
+		w.Write(jsonData)
+		return
+	}
+	TemplateRender(context, name, resultList, w, r)
+}
+
 func DeploymentHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
 	result := DeploymentList(clientset, ctxMap["namespace"].(string))
-	TemplateRender(r.Context(), "deployment", result, w, r)
+	ReturnTypeHandler(r.Context(), result, "deployment", w, r)
 }
 
 func ConfigMapListHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
 	result := ConfigMapList(clientset, ctxMap["namespace"].(string))
-	TemplateRender(r.Context(), "configmap", result, w, r)
-
+	ReturnTypeHandler(r.Context(), result, "configmap", w, r)
 }
 
 func IngressListHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
 	result := IngressList(clientset, ctxMap["namespace"].(string))
-	TemplateRender(r.Context(), "ingress", result, w, r)
+	ReturnTypeHandler(r.Context(), result, "ingress", w, r)
 }
 
 func PodListHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
 	result := PodList(clientset, ctxMap["namespace"].(string))
-	TemplateRender(r.Context(), "pod", result, w, r)
+	ReturnTypeHandler(r.Context(), result, "pod", w, r)
 }
 
 func ServiceListHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
 	result := ServiceList(clientset, ctxMap["namespace"].(string))
-	TemplateRender(r.Context(), "service", result, w, r)
+	ReturnTypeHandler(r.Context(), result, "service", w, r)
 }
 
 func ConfigMapDetailHandler(w http.ResponseWriter, r *http.Request) {
