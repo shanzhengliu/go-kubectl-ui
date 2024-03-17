@@ -2,7 +2,18 @@
 
 <html>
     <script src="js/auth.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/default.min.css">
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+
     <script >
+        function isValidJSON(value) {
+        try {
+            JSON.parse(value);
+            return true;
+        } catch (error) {
+            return false;
+        }
+        }
         function tableJsonGenerate(data){
             
             let table = document.createElement("table")
@@ -14,7 +25,11 @@
                let keyTd= document.createElement("td")
                keyTd.textContent = key
                let valueTd= document.createElement("td")
-               valueTd.textContent = value
+            
+                valueTd.innerHTML = '<pre><code>'+value+'</code></pre>'
+                hljs.highlightAll();
+               
+
                tr.appendChild(keyTd)
                tr.appendChild(valueTd)
                table.appendChild(tr)
