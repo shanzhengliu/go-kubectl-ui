@@ -24,7 +24,7 @@ export function Deployment() {
               response.data[i].containers[j].name,
               response.data[i].containers[j].image,
               response.data[i].selector,
-              response.data[i].status,
+              response.data[i].status==1?"Running":"Pending",
               <Button>
                 <a href={DEPLOYMENTYAML+"?deployment="+response.data[i].name} target="_blank">Yaml</a>
                 </Button>

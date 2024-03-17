@@ -277,5 +277,5 @@ func ResourceUseageHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
 	result := ResourceList(clientset, ctxMap["namespace"].(string))
-	TemplateRender(r.Context(), "resource-usage", result, w, r)
+	ReturnTypeHandler(r.Context(), result, "resource-usage", w, r)
 }
