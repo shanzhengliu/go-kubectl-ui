@@ -7,7 +7,6 @@ import {
   ReactNode,
   ReactPortal,
 } from "react";
-import { LOCALSHELL } from "../utils/endpoints";
 
 export function DisplayTable(props: {
   header: any[];
@@ -63,12 +62,13 @@ export function DisplayTable(props: {
     <div>
       <div className="flex justify-end items-center mb-4 ">
         <Button
-          className="mr-4"
+          className="mr-2"
           color="success"
           onClick={() => {
             props.refresh && props.refresh();
           }}
         >
+           
           Refresh
         </Button>
         <TextInput
