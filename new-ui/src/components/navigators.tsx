@@ -5,7 +5,6 @@ import { Configmap } from "./configmap";
 import { Deployment } from "./deployment";
 import { Ingress } from "./ingress";
 import { Resource } from "./resource";
-import { Button } from "flowbite-react";
 import { LOCALSHELL } from "../utils/endpoints";
 
 export const Navigator = () => {
@@ -30,7 +29,7 @@ export const Navigator = () => {
       <nav className="bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700">
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
           <a className="flex items-center space-x-3 rtl:space-x-reverse">
-            <img src="./kubernetes.svg" className="h-8" alt="Flowbite Logo" />
+            <img src="/assets/kubernetes.svg" className="h-8" alt="Flowbite Logo" />
             <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
               Kubernetes Management
             </span>

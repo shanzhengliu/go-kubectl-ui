@@ -21,15 +21,10 @@ import (
 	"github.com/rs/cors"
 )
 
-//go:embed static
-var static embed.FS
+//go:embed frontend-build
+var frontend embed.FS
 
 var ctxMap map[string]interface{} = make(map[string]interface{})
-
-func loadTeamplate(ctx context.Context) context.Context {
-	ctx = context.WithValue(ctx, "static", static)
-	return ctx
-}
 
 func ContextAdd(ctx context.Context) Middleware {
 	return func(f http.HandlerFunc) http.HandlerFunc {
@@ -89,7 +84,7 @@ func main() {
 	// }
 	ctx := context.WithValue(context.Background(), "map", ctxMap)
 	ctxMap["environment"] = config
-	ctxMap["static"] = static
+	ctxMap["static"] = frontend
 	ctxMap["namespace"] = namespace
 	ctxMap["websitePassword"] = websitePassword
 	if path == "NONE" {
@@ -98,7 +93,7 @@ func main() {
 	internal.RouteInit(ctx, path)
 	router := mux.NewRouter()
 
-	subFs, err := fs.Sub(static, "static")
+	subFs, err := fs.Sub(frontend, "frontend-build")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -131,10 +126,11 @@ func main() {
 		}
 		f.Write(decodedMsg)
 	})
-
+	router.PathPrefix("/assets/").Handler(http.FileServer(http.FS(subFs)))
 	router.PathPrefix("/xterm/").Handler(http.FileServer(http.FS(subFs)))
 	router.PathPrefix("/js/").Handler(http.FileServer(http.FS(subFs)))
-	router.HandleFunc("/", Chain(internal.ResourceUseageHandler, ContextAdd(ctx)))
+	router.HandleFunc("/", Chain(internal.HomeHandler, ContextAdd(ctx)))
+	// router.HandleFunc("/", Chain(internal.ResourceUseageHandler, ContextAdd(ctx)))
 	router.HandleFunc("/auth", Chain(internal.AuthHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/login", Chain(internal.LoginHandler, ContextAdd(ctx)))
 	router.HandleFunc("/deployment", Chain(internal.DeploymentHandler, ContextAdd(ctx)))

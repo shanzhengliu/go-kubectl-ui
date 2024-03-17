@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { axiosInstance } from "../utils/axios";
 import { RESOURCE } from "../utils/endpoints";
 import ReactECharts from "echarts-for-react";
-import { colors } from "../utils/Constant";
+import { colors } from "../utils/constant";
 import { Button } from "flowbite-react";
 export function Resource() {
   const [renderData, setRenderData] = useState<any[][]>([]);
