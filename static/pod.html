@@ -1,52 +1,82 @@
 <!DOCTYPE html>
 
 <html>
-    <script src="js/auth.js"></script>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-        {{template "style"}}
-		<title>Local DashBoard</title>
-	</head>
-	<body>
-        {{template "contextSwitch" .}}
-        {{template "navigator"  }}
+  <script src="js/auth.js"></script>
 
-        <table  class="table">
-            <tr>
-                <th>Pod</th>
-                <th>NameSpace</th>
-                <th>Container</th>
-                <th>Image</th>
-                <th>Image Id</th>
-                <th>Status</th>
-                <th>Create Time</th>
-                <th>Logs</th>
-                <th>Yaml(All)</th>
-                <th>WebShell</th>
-            </tr>
-		{{ range $base :=.ResultList }}
-            {{ range .PodImages }}
-            <tr class="tbbody">
-                <td>{{ $base.Name }}</td>
-                <td>{{ $base.Namespace }}</td>
-                <td>{{ .ContainerName}} </td>
-                <td>{{ .Name }}</td>
-                <td><button class="btn btn-info" onclick="alert('{{ .Id }}')" >Image Id</button> </td>
-                <td>{{ .ContainerStatus }}</td>
-                <td>{{ $base.CreateTime }}</td>
-                <td><a  type="button" class="btn btn-primary" target="_blank" href="/api/podLogs?pod={{ $base.Name}}&container={{.ContainerName}}">View Log</a></td>
-                <td><a  type="button" class="btn btn-warning" target="_blank" href="/api/podYaml?pod={{ $base.Name}}">Yaml</a></td>
-                <td><a  type="button" class="btn btn-secondary" target="_blank" href="/webshell?pod={{ $base.Name}}&container={{.ContainerName}}">Connect WebShell</a></td>
-            </tr> 
-            {{end}}      
-        {{end}}
-        </table>
-	</body>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    {{template "style"}}
+    <title>Local DashBoard</title>
+  </head>
 
-    <dialog style="width: 700px; height:700px;" id="dialog">
-       <div style="width: 650px; height: 650px; text-align: center; " id="dialog-data">
-         
-       </div>
-      <button style="float: right; bottom: auto;" onclick="closeModal()" >close</button>
-    </dialog>
+  <body>
+    {{template "contextSwitch" .}} {{template "navigator" }}
+
+    <table class="table">
+      <tr>
+        <th>Pod</th>
+        <th>NameSpace</th>
+        <th>Container</th>
+        <th>Image</th>
+        <th>Image Id</th>
+        <th>Status</th>
+        <th>Create Time</th>
+        <th>Logs</th>
+        <th>Yaml(All)</th>
+        <th>WebShell</th>
+      </tr>
+      {{ range $base :=.ResultList }} {{ range .PodImages }}
+      <tr class="tbbody">
+        <td>{{ $base.Name }}</td>
+        <td>{{ $base.Namespace }}</td>
+        <td>{{ .ContainerName}}</td>
+        <td>{{ .Name }}</td>
+        <td>
+          <button class="btn btn-info" onclick="alert('{{ .Id }}')">
+            Image Id
+          </button>
+        </td>
+        <td>{{ .ContainerStatus }}</td>
+        <td>{{ $base.CreateTime }}</td>
+        <td>
+          <a
+            type="button"
+            class="btn btn-primary"
+            target="_blank"
+            href="/api/podLogs?pod={{ $base.Name}}&container={{.ContainerName}}"
+            >View Log</a
+          >
+        </td>
+        <td>
+          <a
+            type="button"
+            class="btn btn-warning"
+            target="_blank"
+            href="/api/podYaml?pod={{ $base.Name}}"
+            >Yaml</a
+          >
+        </td>
+        <td>
+          <a
+            type="button"
+            class="btn btn-secondary"
+            target="_blank"
+            href="/webshell?pod={{ $base.Name}}&container={{.ContainerName}}"
+            >Connect WebShell</a
+          >
+        </td>
+      </tr>
+      {{end}} {{end}}
+    </table>
+  </body>
+
+  <dialog style="width: 700px; height: 700px" id="dialog">
+    <div
+      style="width: 650px; height: 650px; text-align: center"
+      id="dialog-data"
+    ></div>
+    <button style="float: right; bottom: auto" onclick="closeModal()">
+      close
+    </button>
+  </dialog>
 </html>

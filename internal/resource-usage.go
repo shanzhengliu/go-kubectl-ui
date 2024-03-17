@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	apiv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -15,36 +16,54 @@ type ResourceQuotaData struct {
 }
 
 type ResourceStatus struct {
-	Used int64 `json:"used"`
-	Hard int64 `json:"hard"`
-	Free int64 `json:"free"`
+	Used int64  `json:"used"`
+	Hard int64  `json:"hard"`
+	Free int64  `json:"free"`
+	Unit string `json:"unit"`
 }
 
 func ResourceList(clientset *kubernetes.Clientset, namespace string) []ResourceQuotaData {
 	resourceQuota := clientset.CoreV1().ResourceQuotas(namespace)
-	resourceQuotaList, error := resourceQuota.List(context.TODO(), apiv1.ListOptions{})
-	if error != nil {
-		fmt.Println(error.Error())
+	resourceQuotaList, err := resourceQuota.List(context.TODO(), apiv1.ListOptions{})
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil
 	}
-	resourceQuotaListData := []ResourceQuotaData{}
-	resourceMap := make(map[string]ResourceStatus)
+
+	resourceQuotaListData := make([]ResourceQuotaData, 0, len(resourceQuotaList.Items))
+
 	for _, item := range resourceQuotaList.Items {
-		for resource, _ := range item.Status.Hard {
+		resourceMap := make(map[string]ResourceStatus)
+
+		for resource, hard := range item.Status.Hard {
 			used := item.Status.Used[resource]
-			hard := item.Status.Hard[resource]
+			hardValue := hard.Value()
+			usedValue := used.Value()
+			unit := ""
+
+			if strings.Contains(resource.String(), "memory") {
+				hardValue /= 1024 * 1024
+				usedValue /= 1024 * 1024
+				unit = "MB"
+			}
+			if strings.Contains(resource.String(), "cpu") {
+				unit = "Core"
+			}
+
 			resourceMap[resource.String()] = ResourceStatus{
-				Used: used.Value(),
-				Hard: hard.Value(),
-				Free: hard.Value() - used.Value(),
+				Used: usedValue,
+				Hard: hardValue,
+				Free: hardValue - usedValue,
+				Unit: unit,
 			}
 		}
 
-		resourceQuota := &ResourceQuotaData{
+		resourceQuotaListData = append(resourceQuotaListData, ResourceQuotaData{
 			Name:        item.Name,
 			Namespace:   item.Namespace,
 			ResourceMap: resourceMap,
-		}
-		resourceQuotaListData = append(resourceQuotaListData, *resourceQuota)
+		})
 	}
+
 	return resourceQuotaListData
 }

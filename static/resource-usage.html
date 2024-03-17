@@ -1,78 +1,142 @@
 <!DOCTYPE html>
 <html>
-<script src="js/auth.js"></script>
-
-<head>
+  <script src="js/auth.js"></script>
+  <head>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.3.2/dist/echarts.min.js"></script>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     {{template "style"}}
     <title>Local DashBoard</title>
     <script>
-        function textFirstCharCapitalize(value){
-              return value.replace(".", " ").replace(/\b\w/g, l => l.toUpperCase());
+      function textFirstCharCapitalize(value) {
+        return value.replace(".", " ").replace(/\b\w/g, (l) => l.toUpperCase());
+      }
+
+      function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
         }
+        return array;
+      }
+
+      const colors = [
+        "#c23531",
+        "#2f4554",
+        "#61a0a8",
+        "#d48265",
+        "#91c7ae",
+        "#749f83",
+        "#ca8622",
+        "#bda29a",
+        "#6e7074",
+        "#546570",
+        "#c4ccd3",
+        "#1f77b4",
+        "#ff7f0e",
+        "#2ca02c",
+        "#d62728",
+        "#9467bd",
+        "#8c564b",
+        "#e377c2",
+        "#7f7f7f",
+        "#bcbd22",
+        "#17becf",
+        "#003366",
+        "#006699",
+        "#0099cc",
+        "#66ccff",
+        "#99ccff",
+        "#ccccff",
+        "#6600cc",
+        "#9933ff",
+        "#cc99ff",
+        "#ff99ff",
+        "#006600",
+        "#00cc00",
+        "#33ff33",
+        "#99ff99",
+        "#ccffcc",
+        "#ff0000",
+        "#ff6600",
+        "#ff9900",
+        "#ffcc00",
+        "#ffff00",
+        "#996600",
+        "#cc9900",
+        "#ffcc66",
+        "#ffcc99",
+        "#ffffcc",
+        "#660033",
+        "#990066",
+        "#cc0099",
+        "#ff00ff",
+        "#ff99cc",
+      ];
     </script>
-</head>
+  </head>
+  <body>
+    {{template "contextSwitch" .}} {{template "navigator" }} {{ range $base
+    :=.ResultList }}
+    <h1 style="justify-content: center; text-align: center">
+      <span style="color: green">{{ $base.Name }}</span> - {{ $base.Namespace }}
+    </h1>
 
-<body>
-    {{template "contextSwitch" .}} {{template "navigator" }}
-     
-    {{ range $base :=.ResultList }}
-    <h1 style="justify-content: center; text-align: center;" ><span style="color: green;">{{ $base.Name }}</span> - {{ $base.Namespace }} </h1>
- 
-    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-        {{ range $key, $value := .ResourceMap }}
-        <div id="{{$key}}" style="width: 100%; height: 500px;"></div>
-        <script>
-            (function () {
-                var colors = ['#c23531', '#2f4554', '#61a0a8', '#d48265', '#91c7ae', '#749f83', '#ca8622', '#bda29a', '#6e7074', '#546570', '#c4ccd3'];
-                var chartDom = document.getElementById('{{$key}}');
-                var myChart = echarts.init(chartDom);
-                var data = [
-                    { value: '{{$value.Used}}', name: 'Used' },
-                    { value: '{{$value.Free}}', name: 'Free' }
-                ];
+    <div
+      style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px"
+    >
+      {{ range $key, $value := .ResourceMap }}
+      <div id="{{$key}}" style="width: 100%; height: 500px"></div>
+      <script>
+        (function () {
+          shuffle(colors);
+          var chartDom = document.getElementById("{{$key}}");
+          var myChart = echarts.init(chartDom);
+          var data = [
+            { value: "{{$value.Used}}", name: "Used" },
+            { value: "{{$value.Free}}", name: "Free" },
+          ];
 
-                data.forEach(function (item) {
-                    item.itemStyle = {
-                        color: colors[Math.floor(Math.random() * colors.length)]
-                    };
-                });
+          data.forEach(function (item, index) {
+            item.itemStyle = {
+              color: colors[index],
+            };
+          });
 
-                var option = {
-                    title: {
-                        text: textFirstCharCapitalize("{{$key}}"),
-                        left: 'center'
-                    },
-                    tooltip: {
-                        trigger: 'item'
-                    },
-                    series: [
-                        {
-                            name: textFirstCharCapitalize("{{$key}}") + " Resource Usage - Total : {{$value.Hard}}",
-                            type: 'pie',
-                            radius: '60%',
-                            data: data,
-                            emphasis: {
-                                itemStyle: {
-                                    shadowBlur: 10,
-                                    shadowOffsetX: 0,
-                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
-                                }
-                            },
-                            label: {
-                                formatter: '{b}: {d}%'
-                            }
-                        }
-                    ]
-                };
+          var option = {
+            title: {
+              text: textFirstCharCapitalize("{{$key}}"),
+              left: "center",
+            },
+            tooltip: {
+              trigger: "item",
+            },
+            series: [
+              {
+                name:
+                  textFirstCharCapitalize("{{$key}}") +
+                  " Resource Usage - Total : {{$value.Hard}} {{$value.Unit}}",
+                type: "pie",
+                radius: "60%",
+                data: data,
+                emphasis: {
+                  itemStyle: {
+                    shadowBlur: 10,
+                    shadowOffsetX: 0,
+                    shadowColor: "rgba(0, 0, 0, 0.5)",
+                  },
+                },
+                label: {
+                  formatter: "{b}: {c} {{$value.Unit}} {d}%",
+                },
+              },
+            ],
+          };
 
-                myChart.setOption(option);
-            })();
-        </script>
-        {{end}}
+          myChart.setOption(option);
+        })();
+      </script>
+      {{end}}
     </div>
     {{end}}
-</body>
-
+  </body>
 </html>
