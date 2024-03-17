@@ -1,8 +1,18 @@
+##frontend build
+FROM node:20-slim AS NodeBuild
+WORKDIR /app
+COPY ./new-ui/ /app
+RUN npm install -g pnpm
+RUN pnpm install
+RUN pnpm build
+##node build end
+
 
 FROM golang:1.20.6-alpine3.18 AS BuildStage
 
 WORKDIR /app
 COPY . .
+COPY --from=NodeBuild /app/dist/ /app/frontend-build
 RUN apk --no-cache add upx
 RUN go mod download
 RUN go build -o /app/main .
