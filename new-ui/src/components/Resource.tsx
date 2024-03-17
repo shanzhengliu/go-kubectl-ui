@@ -90,7 +90,7 @@ export function Resource() {
   return (
     <div>
       <div className="flex justify-end items-center mb-4">
-      <Button color={"success"} onClick={fetchData}>Refresh</Button>
+      <Button  className="mr-4"  color={"success"} onClick={fetchData}>Refresh</Button>
       </div>
    
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
