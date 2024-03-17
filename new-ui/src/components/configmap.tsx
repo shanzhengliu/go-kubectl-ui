@@ -46,15 +46,12 @@ export function Configmap() {
     dataFecth();
   }, []);
 
-  const refresh = () => {
-    dataFecth();
-  };
   return (
     <div>
       <DisplayTable
         data={tableData}
         header={["Configmap", "Namespace", ""]}
-        refresh={refresh}
+        refresh={dataFecth}
       />
       <div>
         <div>
