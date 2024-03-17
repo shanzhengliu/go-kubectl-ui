@@ -4,7 +4,9 @@ import { Pod } from "./pod";
 import { Configmap } from "./configmap";
 import { Deployment } from "./deployment";
 import { Ingress } from "./ingress";
-import { Resource } from "./Resource";
+import { Resource } from "./resource";
+import { Button } from "flowbite-react";
+import { LOCALSHELL } from "../utils/endpoints";
 
 export const Navigator = () => {
   const menuMap: { [key: string]: any } = {
@@ -17,6 +19,7 @@ export const Navigator = () => {
   };
 
   const [currentComponent, setCurrentComponent] = useState("Pod");
+  const [currentKey, setCurrentKey] = useState("Pod");
 
   const renderComponent = () => {
     return menuMap[currentComponent];
@@ -32,7 +35,10 @@ export const Navigator = () => {
               Kubernetes Management
             </span>
           </a>
-          <div className="hidden w-full md:block md:w-auto" id="navbar-dropdown">
+          <div
+            className="hidden w-full md:block md:w-auto"
+            id="navbar-dropdown"
+          >
             <ul className="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
               {Object.entries(menuMap).map(([key]) => (
                 <li key={key}>
@@ -40,12 +46,22 @@ export const Navigator = () => {
                     className={`block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent ${
                       currentComponent === key ? "text-blue-700" : ""
                     }`}
-                    onClick={() => setCurrentComponent(key)}
+                    onClick={() => {
+                      setCurrentKey(key);
+                      setCurrentComponent(key);
+                    }}
                   >
                     {key}
                   </a>
                 </li>
               ))}
+              <li className="justify-end" >
+                <Button className="mr-4">
+                  <a href={LOCALSHELL} target="_blank">
+                    Docker
+                  </a>
+                </Button>
+              </li>
             </ul>
           </div>
         </div>
