@@ -145,6 +145,8 @@ func main() {
 	router.HandleFunc("/resource", Chain(internal.ResourceUseageHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/configmap-detail", Chain(internal.ConfigMapDetailHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/context-change", Chain(internal.ContextChangeHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/context-list", Chain(internal.ContextListHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/current-context", Chain(internal.CurrentContextHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/podLogs", Chain(internal.PodLogHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/podYaml", Chain(internal.PodtoYamlHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/deploymentYaml", Chain(internal.DeploymentYamlHandler, ContextAdd(ctx)))

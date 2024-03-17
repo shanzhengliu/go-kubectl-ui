@@ -132,6 +132,16 @@ func ContextChangeHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(nil)
 }
 
+func CurrentContextHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(CurrentContext(r.Context()))
+}
+
+func ContextListHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(ContextList(r.Context()))
+}
+
 func PodLogHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
