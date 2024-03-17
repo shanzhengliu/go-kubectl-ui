@@ -4,6 +4,7 @@ import { Pod } from "./pod";
 import { Configmap } from "./configmap";
 import { Deployment } from "./deployment";
 import { Ingress } from "./ingress";
+import { Resource } from "./Resource";
 
 export const Navigator = () => {
   const menuMap: { [key: string]: any } = {
@@ -12,6 +13,7 @@ export const Navigator = () => {
     Service: <Service />,
     Configmap: <Configmap />,
     Ingress: <Ingress />,
+    Resource: <Resource />,
   };
 
   const [currentComponent, setCurrentComponent] = useState("Pod");

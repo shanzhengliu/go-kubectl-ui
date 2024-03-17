@@ -13,6 +13,7 @@ require (
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/moby/spdystream v0.2.0 // indirect
 	github.com/olahol/melody v1.1.4 // indirect
+	github.com/rs/cors v1.10.1 // indirect
 )
 
 require (
