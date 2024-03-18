@@ -29,3 +29,22 @@ func ContextChange(ctx context.Context, contextName string, namespace string) {
 	ctxMap["environment"] = contextName
 	ctxMap["namespace"] = namespace
 }
+
+type KubeContext struct {
+	Context   string `json:"context"`
+	Namespace string `json:"namespace"`
+}
+
+func CurrentContext(ctx context.Context) KubeContext {
+	ctxMap := ctx.Value("map").(map[string]interface{})
+	KubeContext := KubeContext{
+		Context:   ctxMap["environment"].(string),
+		Namespace: ctxMap["namespace"].(string),
+	}
+	return KubeContext
+}
+
+func ContextList(ctx context.Context) []string {
+	ctxMap := ctx.Value("map").(map[string]interface{})
+	return ctxMap["contextList"].([]string)
+}

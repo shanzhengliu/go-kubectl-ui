@@ -18,17 +18,13 @@ import (
 	"github.com/creack/pty"
 	"github.com/gorilla/mux"
 	"github.com/olahol/melody"
+	"github.com/rs/cors"
 )
 
-//go:embed static
-var static embed.FS
+//go:embed frontend-build
+var frontend embed.FS
 
 var ctxMap map[string]interface{} = make(map[string]interface{})
-
-func loadTeamplate(ctx context.Context) context.Context {
-	ctx = context.WithValue(ctx, "static", static)
-	return ctx
-}
 
 func ContextAdd(ctx context.Context) Middleware {
 	return func(f http.HandlerFunc) http.HandlerFunc {
@@ -88,7 +84,7 @@ func main() {
 	// }
 	ctx := context.WithValue(context.Background(), "map", ctxMap)
 	ctxMap["environment"] = config
-	ctxMap["static"] = static
+	ctxMap["static"] = frontend
 	ctxMap["namespace"] = namespace
 	ctxMap["websitePassword"] = websitePassword
 	if path == "NONE" {
@@ -97,7 +93,7 @@ func main() {
 	internal.RouteInit(ctx, path)
 	router := mux.NewRouter()
 
-	subFs, err := fs.Sub(static, "static")
+	subFs, err := fs.Sub(frontend, "frontend-build")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -130,10 +126,11 @@ func main() {
 		}
 		f.Write(decodedMsg)
 	})
-
+	router.PathPrefix("/assets/").Handler(http.FileServer(http.FS(subFs)))
 	router.PathPrefix("/xterm/").Handler(http.FileServer(http.FS(subFs)))
 	router.PathPrefix("/js/").Handler(http.FileServer(http.FS(subFs)))
-	router.HandleFunc("/", Chain(internal.ResourceUseageHandler, ContextAdd(ctx)))
+	router.HandleFunc("/", Chain(internal.HomeHandler, ContextAdd(ctx)))
+	// router.HandleFunc("/", Chain(internal.ResourceUseageHandler, ContextAdd(ctx)))
 	router.HandleFunc("/auth", Chain(internal.AuthHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/login", Chain(internal.LoginHandler, ContextAdd(ctx)))
 	router.HandleFunc("/deployment", Chain(internal.DeploymentHandler, ContextAdd(ctx)))
@@ -144,6 +141,8 @@ func main() {
 	router.HandleFunc("/resource", Chain(internal.ResourceUseageHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/configmap-detail", Chain(internal.ConfigMapDetailHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/context-change", Chain(internal.ContextChangeHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/context-list", Chain(internal.ContextListHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/current-context", Chain(internal.CurrentContextHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/podLogs", Chain(internal.PodLogHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/podYaml", Chain(internal.PodtoYamlHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/deploymentYaml", Chain(internal.DeploymentYamlHandler, ContextAdd(ctx)))
@@ -151,8 +150,14 @@ func main() {
 	router.HandleFunc("/localshell", Chain(internal.LocalShellHandler, ContextAdd(ctx)))
 	router.HandleFunc("/ws/webshell", Chain(internal.ServeWsTerminalHandler, ContextAdd(ctx)))
 	router.HandleFunc("/ws/localshell", Chain(func(w http.ResponseWriter, r *http.Request) { m.HandleRequest(w, r) }, ContextAdd(ctx)))
+	cor := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: false,
+		AllowedHeaders:   []string{"*"},
+	})
+	corHandler := cor.Handler(router)
 	fmt.Println("listening: " + port + " port")
 	fmt.Println("link: http://localhost:" + port)
-	log.Fatal(http.ListenAndServe(":"+port, router))
+	log.Fatal(http.ListenAndServe(":"+port, corHandler))
 
 }

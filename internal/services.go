@@ -12,7 +12,7 @@ type Service struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
 	Type      string `json:"type"`
-	Selector  string `json:"selecter"`
+	Selector  string `json:"selector"`
 }
 
 func ServiceList(clientset *kubernetes.Clientset, namespace string) []Service {

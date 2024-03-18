@@ -49,7 +49,7 @@ func TemplateRender(ctx context.Context, path string, resultList interface{}, w 
 	ctxMap := ctx.Value("map").(map[string]interface{})
 	tplblob := ctxMap["static"].(embed.FS)
 
-	template, err := template.ParseFS(tplblob, "static/"+path+".html", "static/tpl/navigator.html", "static/tpl/contextSwitch.html", "static/tpl/style.html")
+	template, err := template.ParseFS(tplblob, "frontend-build/"+path+".html")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -71,40 +71,51 @@ func AuthHandler(w http.ResponseWriter, r *http.Request) {
 	TemplateRender(r.Context(), "auth", "", w, r)
 }
 
+func ReturnTypeHandler(context context.Context, resultList interface{}, w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+	jsonData, err := json.Marshal(resultList)
+	if err != nil {
+		fmt.Println(err)
+	}
+	w.Write(jsonData)
+	return
+
+}
+
 func DeploymentHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
 	result := DeploymentList(clientset, ctxMap["namespace"].(string))
-	TemplateRender(r.Context(), "deployment", result, w, r)
+	ReturnTypeHandler(r.Context(), result, w, r)
 }
 
 func ConfigMapListHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
 	result := ConfigMapList(clientset, ctxMap["namespace"].(string))
-	TemplateRender(r.Context(), "configmap", result, w, r)
-
+	ReturnTypeHandler(r.Context(), result, w, r)
 }
 
 func IngressListHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
 	result := IngressList(clientset, ctxMap["namespace"].(string))
-	TemplateRender(r.Context(), "ingress", result, w, r)
+	ReturnTypeHandler(r.Context(), result, w, r)
 }
 
 func PodListHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
 	result := PodList(clientset, ctxMap["namespace"].(string))
-	TemplateRender(r.Context(), "pod", result, w, r)
+	ReturnTypeHandler(r.Context(), result, w, r)
 }
 
 func ServiceListHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
 	result := ServiceList(clientset, ctxMap["namespace"].(string))
-	TemplateRender(r.Context(), "service", result, w, r)
+	ReturnTypeHandler(r.Context(), result, w, r)
 }
 
 func ConfigMapDetailHandler(w http.ResponseWriter, r *http.Request) {
@@ -118,6 +129,16 @@ func ContextChangeHandler(w http.ResponseWriter, r *http.Request) {
 	ContextChange(r.Context(), r.URL.Query().Get("context"), r.URL.Query().Get("namespace"))
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(nil)
+}
+
+func CurrentContextHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(CurrentContext(r.Context()))
+}
+
+func ContextListHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(ContextList(r.Context()))
 }
 
 func PodLogHandler(w http.ResponseWriter, r *http.Request) {
@@ -255,5 +276,10 @@ func ResourceUseageHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
 	result := ResourceList(clientset, ctxMap["namespace"].(string))
-	TemplateRender(r.Context(), "resource-usage", result, w, r)
+	ReturnTypeHandler(r.Context(), result, w, r)
+}
+
+func HomeHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	TemplateRender(r.Context(), "index", "", w, r)
 }
