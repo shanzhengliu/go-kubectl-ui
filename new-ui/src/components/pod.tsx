@@ -6,7 +6,7 @@ import { POD, PODLOGS, PODYAML, WEBSHELL } from "../utils/endpoints";
 import { Button } from "flowbite-react";
 export function Pod() {
   const [renderData, setRenderData] = useState<any[][]>([]);
-  const dataFecth = () => {
+  const dataFetch = () => {
     axiosInstance
       .get(POD, {
         data: {},
@@ -44,17 +44,13 @@ export function Pod() {
       });
   };
   useEffect(() => {
-    dataFecth();
+    dataFetch();
   }, []);
-
-  const refresh = () => {
-    dataFecth();
-  };
   return (
     <div>
       <DisplayTable
         data={renderData}
-        refresh={refresh}
+        refresh={dataFetch}
         header={[
           "Pod",
           "Namespace",
