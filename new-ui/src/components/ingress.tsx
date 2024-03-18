@@ -20,7 +20,7 @@ export function Ingress() {
               responseData.push([
                 response.data[i].name,
                 response.data[i].namespace,
-                <a  className="underline text-blue-700" href={"https://"+response.data[i].rules[j].host} >{"https://"+response.data[i].rules[j].host}</a> ,
+                <a  target="_blank" className="underline text-blue-700" href={"https://"+response.data[i].rules[j].host} >{"https://"+response.data[i].rules[j].host}</a> ,
               ]);
             }
           }

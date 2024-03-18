@@ -1,12 +1,8 @@
-import {  useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { DisplayTable } from "./displayTable";
 import { axiosInstance } from "../utils/axios";
-import {
-  POD,
-  PODLOGS,
-  PODYAML,
-  WEBSHELL,
-} from "../utils/endpoints";
+import Swal from "sweetalert2";
+import { POD, PODLOGS, PODYAML, WEBSHELL } from "../utils/endpoints";
 import { Button } from "flowbite-react";
 export function Pod() {
   const [renderData, setRenderData] = useState<any[][]>([]);
@@ -28,7 +24,9 @@ export function Pod() {
               response.data[i].images[j].containerName,
               response.data[i].images[j].name,
               <ImageId id={response.data[i].images[j].id}></ImageId>,
-              <StatusRunning  status={response.data[i].images[j].containerStatus} />,
+              <StatusRunning
+                status={response.data[i].images[j].containerStatus}
+              />,
               response.data[i].createTime,
               <Logs
                 pod={response.data[i].name}
@@ -44,14 +42,14 @@ export function Pod() {
         }
         setRenderData(responseData);
       });
-  }
+  };
   useEffect(() => {
-      dataFecth();
+    dataFecth();
   }, []);
 
   const refresh = () => {
     dataFecth();
-  }
+  };
   return (
     <div>
       <DisplayTable
@@ -120,7 +118,16 @@ function WebShell(props: { pod: string; container: string }) {
 function ImageId(props: { id: string }) {
   return (
     <div>
-      <Button color="light" onClick={() => alert(props.id)}>
+      <Button
+        color="light"
+        onClick={() => {
+          Swal.fire({
+            title: "Image ID",
+            text: props.id,
+            confirmButtonText: "ok",
+          });
+        }}
+      >
         ID
       </Button>
     </div>

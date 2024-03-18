@@ -17,6 +17,8 @@ import {
 } from "react";
 import { axiosInstance } from "../utils/axios";
 import { CONTEXT_CHANGE, CONTEXT_LIST, CURRENT_CONTEXT } from "../utils/endpoints";
+import { inputHook } from "../hooks/inputhook";
+import { ContextSwitcher } from "./contextSwitcher";
 
 export function DisplayTable(props: {
   header: any[];
@@ -28,7 +30,7 @@ export function DisplayTable(props: {
   const [currentContext, setCurrentContext] = React.useState("NA");
   const [contextSelected, setContextSelected] = React.useState("");
   const [currentNamespace, setCurrentNamespace] = React.useState("NA");
-  const [inputNamespace, setInputNamespace] = React.useState("");
+  const [inputNamespace, setInputNamespace, onchangeInputNamespace] = inputHook("");
   const [renderData, setRenderData] = React.useState<any[][]>(props.data || []);
   const [originData, setOriginData] = React.useState<any[][]>(props.data || []);
   const [contextList, setContextList] = React.useState<any[]>([]);
@@ -54,9 +56,6 @@ export function DisplayTable(props: {
     setContextSelected(e.target.value);
   }
 
-  const inputNamespaceChange = (e:any) => {
-    setInputNamespace(e.target.value);
-  }
 
   useEffect(() => {
     if (openModal) {
@@ -214,33 +213,7 @@ export function DisplayTable(props: {
         </Table>
       </div>
 
-      <Modal
-        show={openModal}
-        onClose={() => {
-          setOpenModal(false);
-        }}
-      >
-        <Modal.Header>Context</Modal.Header>
-        <Modal.Body>
-          <div className="max-w-md">
-            <div className="mb-2 block">
-              <Label htmlFor="context" value="Select your context" />
-            </div>
-            <Select id="context" required value={contextSelected} onChange={contextValueChange}>
-                {contextList.map((context, index) => (
-                    <option value={context} key={index}>{context}</option>
-                ))}        
-            </Select>
-            <div className="mb-2 block">
-              <Label htmlFor="context" value="Input your Namespace" />
-             <TextInput id="context" value={inputNamespace}  onChange={inputNamespaceChange}  className="bg-gray-200" placeholder="Input your Namespace" />
-            </div>
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button onClick={switchContext} >OK</Button>
-        </Modal.Footer>
-      </Modal>
+      <ContextSwitcher onSwitch={props.refresh} />
     </div>
   );
 }
