@@ -130,7 +130,6 @@ func main() {
 	router.PathPrefix("/xterm/").Handler(http.FileServer(http.FS(subFs)))
 	router.PathPrefix("/js/").Handler(http.FileServer(http.FS(subFs)))
 	router.HandleFunc("/", Chain(internal.HomeHandler, ContextAdd(ctx)))
-	// router.HandleFunc("/", Chain(internal.ResourceUseageHandler, ContextAdd(ctx)))
 	router.HandleFunc("/auth", Chain(internal.AuthHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/login", Chain(internal.LoginHandler, ContextAdd(ctx)))
 	router.HandleFunc("/deployment", Chain(internal.DeploymentHandler, ContextAdd(ctx)))
