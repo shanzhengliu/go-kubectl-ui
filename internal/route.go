@@ -42,6 +42,7 @@ func RouteInit(ctx context.Context, path string) {
 	ctxMap["restConfig"] = config
 	ctxMap["configPath"] = path
 	ctxMap["clientSet"] = clientset
+	// ctxMap["restClient"] = restClient
 	ctxMap["contextList"] = maps.Keys(KubeconfigList(path))
 }
 
@@ -217,7 +218,6 @@ func ServeWsTerminalHandler(w http.ResponseWriter, r *http.Request) {
 		pty.Write([]byte(msg))
 		pty.Done()
 	}
-	return
 }
 
 func PodExec(clientset *kubernetes.Clientset, restconfig *rest.Config, cmd []string, ptyHandler terminal.PtyHandler, namespace string, podName string, containerName string) error {
@@ -282,4 +282,10 @@ func ResourceUseageHandler(w http.ResponseWriter, r *http.Request) {
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	TemplateRender(r.Context(), "index", "", w, r)
+}
+
+func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
+	username, _ := GetUserInfo(r.Context(), r.URL.Query().Get("namespace"))
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(username)
 }

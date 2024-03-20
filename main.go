@@ -1,4 +1,4 @@
-package main
+package main_
 
 import (
 	"context"
@@ -44,7 +44,7 @@ func Chain(f http.HandlerFunc, middlewares ...Middleware) http.HandlerFunc {
 	return f
 }
 
-func main() {
+func main_1() {
 	var config string
 	var namespace string
 	var port string
@@ -138,6 +138,7 @@ func main() {
 	router.HandleFunc("/pod", Chain(internal.PodListHandler, ContextAdd(ctx)))
 	router.HandleFunc("/service", Chain(internal.ServiceListHandler, ContextAdd(ctx)))
 	router.HandleFunc("/resource", Chain(internal.ResourceUseageHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/user-info", Chain(internal.UserInfoHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/configmap-detail", Chain(internal.ConfigMapDetailHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/context-change", Chain(internal.ContextChangeHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/context-list", Chain(internal.ContextListHandler, ContextAdd(ctx)))
