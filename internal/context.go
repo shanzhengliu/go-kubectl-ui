@@ -52,3 +52,9 @@ func ContextList(ctx context.Context) []string {
 	ctxMap := ctx.Value("map").(map[string]interface{})
 	return ctxMap["contextList"].([]string)
 }
+
+func GetCurrentContextFromKubeCmd() string {
+	kubeconfig := clientcmd.NewDefaultClientConfigLoadingRules().GetDefaultFilename()
+	config, _ := clientcmd.LoadFromFile(kubeconfig)
+	return config.CurrentContext
+}

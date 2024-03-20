@@ -289,3 +289,37 @@ func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(username)
 }
+
+func OIDCLoginHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	configPath := ctxMap["configPath"].(string)
+	currentContext := ctxMap["environment"].(string)
+
+	config, err := clientcmd.LoadFromFile(configPath)
+	if err != nil {
+		fmt.Printf(err.Error())
+	}
+	user := config.Contexts[currentContext].AuthInfo
+	userInfo, exists := config.AuthInfos[user]
+	if !exists {
+		fmt.Printf(user)
+	}
+	if userInfo.Exec != nil {
+		ConfigUserExecArgsMap(userInfo.Exec.Args, ctxMap, "oidcMap")
+		oidcMap := ctxMap["oidcMap"].(map[string][]string)
+		if _, exists := oidcMap["oidc-login"]; exists {
+			currentState, currentNonce, params := GenerateStateAndNonce()
+			ctxMap["state"] = currentState
+			ctxMap["nonce"] = currentNonce
+			ctxMap["params"] = params
+			url := OIDCLoginUrlGenerate(r.Context(), oidcMap["oidc-issuer-url"][0], oidcMap["oidc-client-id"][0], "http://localhost:8000", oidcMap["oidc-extra-scope"], params, currentNonce, currentState)
+			w.WriteHeader(http.StatusUnauthorized)
+			//response := map[string]string{"url": url}
+			w.Write([]byte(url))
+		}
+
+	} else {
+		fmt.Println("use don't have exec command")
+	}
+
+}

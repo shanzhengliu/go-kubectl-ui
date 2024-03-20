@@ -22,7 +22,6 @@ func NewRand32() (string, error) {
 	return Base64URLEncode(b), nil
 }
 
-// Params represents a set of the PKCE parameters.
 type Params struct {
 	CodeChallenge       string
 	CodeChallengeMethod string
