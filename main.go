@@ -1,4 +1,4 @@
-package main_
+package main
 
 import (
 	"context"
@@ -44,7 +44,7 @@ func Chain(f http.HandlerFunc, middlewares ...Middleware) http.HandlerFunc {
 	return f
 }
 
-func main_1() {
+func main() {
 	var config string
 	var namespace string
 	var port string

@@ -11,19 +11,10 @@ import (
 var Plain Params
 
 const (
-	// code challenge methods defined as https://tools.ietf.org/html/rfc7636#section-4.3
 	MethodS256 = "S256"
 )
 
-func NewState() (string, error) {
-	b, err := Random32()
-	if err != nil {
-		return "", fmt.Errorf("could not generate a random: %w", err)
-	}
-	return Base64URLEncode(b), nil
-}
-
-func NewNonce() (string, error) {
+func NewRand32() (string, error) {
 	b, err := Random32()
 	if err != nil {
 		return "", fmt.Errorf("could not generate a random: %w", err)
@@ -38,13 +29,6 @@ type Params struct {
 	CodeVerifier        string
 }
 
-func (p Params) IsZero() bool {
-	return p == Params{}
-}
-
-// New returns a parameters supported by the provider.
-// You need to pass the code challenge methods defined in RFC7636.
-// It returns Plain if no method is available.
 func NewParam(methods []string) (Params, error) {
 	for _, method := range methods {
 		if method == MethodS256 {

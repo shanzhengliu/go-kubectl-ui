@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"context"
@@ -8,18 +8,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"modules/internal"
 	"net/http"
 	"os"
 
 	"golang.org/x/oauth2"
 )
 
-// 全局变量用于存储state，注意：实际应用中应避免使用全局变量来存储重要信息。
 var currentState string
 var currentNonce string
 
-func computeFilename(key Key) (string, error) {
+func ComputeFilename(key Key) (string, error) {
 	s := sha256.New()
 	e := gob.NewEncoder(s)
 	if err := e.Encode(&key); err != nil {
@@ -40,25 +38,21 @@ type Key struct {
 	SkipTLSVerify  bool
 }
 
-type cacheToken struct {
+type CacheToken struct {
 	AccessToken string `json:"access_token"`
 	IdToken     string `json:"id_token"`
 }
 
-func main() {
+func test() {
 	ctx := context.Background()
 
-	// Generate a new state for this auth session
 	var err error
-	currentState, err = internal.NewState() // 生成state
+	currentState, err = NewRand32()
 	if err != nil {
 		log.Fatalf("无法生成state: %v", err)
 	}
 
-	currentNonce, err = internal.NewNonce() // 生成nonce
-	if err != nil {
-		log.Fatalf("无法生成nonce: %v", err)
-	}
+	currentNonce, err = NewRand32()
 
 	// codeVerifier, codeChallenge, _ := createCodeVerifierAndChallenge()
 	conf := &oauth2.Config{
@@ -71,7 +65,7 @@ func main() {
 		},
 	}
 
-	params, nil := internal.NewParam([]string{"S256"})
+	params, nil := NewParam([]string{"S256"})
 
 	url := conf.AuthCodeURL(currentState, oauth2.AccessTypeOffline, oauth2.SetAuthURLParam("code_challenge", params.CodeChallenge),
 		oauth2.SetAuthURLParam("code_challenge_method", params.CodeChallengeMethod), oauth2.SetAuthURLParam("nonce", currentNonce))
@@ -80,8 +74,8 @@ func main() {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		receivedState := r.URL.Query().Get("state")
 		if receivedState != currentState {
-			log.Printf("无效的state: 收到的state=%s, 期望的state=%s", receivedState, currentState)
-			http.Error(w, "State不匹配", http.StatusBadRequest)
+
+			http.Error(w, "State Incorrect", http.StatusBadRequest)
 			return
 		}
 		code := r.URL.Query().Get("code")
@@ -89,8 +83,8 @@ func main() {
 		token, err := conf.Exchange(ctx, code, oauth2.SetAuthURLParam("code_verifier", params.CodeVerifier))
 		if err != nil {
 			println(err.Error())
-			log.Printf("Exchange失败: %v", err)
-			http.Error(w, "无法获取token", http.StatusInternalServerError)
+			log.Printf("Exchange Failed: %v", err)
+			http.Error(w, "Can Get Token", http.StatusInternalServerError)
 			return
 		}
 
@@ -99,22 +93,21 @@ func main() {
 			ClientID:    "0oalcfi71iDpdoa0K2p7",
 			ExtraScopes: []string{"email", "offline_access", "profile", "openid"},
 		}
-		filename, _ := computeFilename(key)
+		filename, _ := ComputeFilename(key)
 		idToken := token.Extra("id_token").(string)
 
 		fmt.Fprintf(w, "获取到的Token: %+v\n", idToken)
 		fmt.Fprintf(w, "获取到的Filename: %+v\n", filename)
-		cacheToken := cacheToken{
+		cacheToken := CacheToken{
 			AccessToken: token.AccessToken,
 			IdToken:     idToken,
 		}
-		// 写入文件
 		jsonToken, _ := json.Marshal(cacheToken)
 
 		os.WriteFile(filename, jsonToken, 777)
 
 	})
 
-	log.Println("启动HTTP服务器,监听8000端口")
+	log.Println("listening on :8000...")
 	log.Fatal(http.ListenAndServe(":8000", mux))
 }
