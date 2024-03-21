@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { axiosInstance } from "../utils/axios";
+import { authVerify, axiosInstance } from "../utils/axios";
 import { RESOURCE } from "../utils/endpoints";
 import ReactECharts from "echarts-for-react";
 import { colors } from "../utils/constant";
@@ -63,7 +63,8 @@ export function Resource() {
 
     return option;
   };
-  const fetchData = () => {
+  const fetchData = async () => {
+    await authVerify();
     axiosInstance
       .get(RESOURCE, {
         data: {},

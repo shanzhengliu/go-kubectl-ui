@@ -20,6 +20,7 @@ export function ContextSwitcher(props: { onSwitch: () => void }) {
   };
 
   useEffect(() => {
+    
     axiosInstance
       .get(CURRENT_CONTEXT, {
         data: {},

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"text/template"
 
 	terminal "github.com/maoqide/kubeutil/pkg/terminal"
@@ -45,6 +46,46 @@ func RouteInit(ctx context.Context, path string) {
 	ctxMap["clientSet"] = clientset
 	// ctxMap["restClient"] = restClient
 	ctxMap["contextList"] = maps.Keys(KubeconfigList(path))
+	oktaCacheInitFromOS(ctxMap)
+
+}
+
+func oktaCacheInitFromOS(ctxMap map[string]interface{}) {
+	files, err := os.ReadDir(ctxMap["kubeDefaultPath"].(string) + "/cache/oidc-login")
+	if err != nil {
+		fmt.Println("Error reading directory:", err)
+		return
+	}
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		if file.Name() == "oidc-login" {
+			continue
+		}
+
+		cache := LoadCacheToken(ctxMap["kubeDefaultPath"].(string) + "/cache/oidc-login/" + file.Name())
+
+		if cache.AccessToken != "" {
+			ctxMap["cacheToken-"+file.Name()] = cache
+		}
+	}
+}
+
+func LoadCacheToken(path string) CacheToken {
+	file, err := os.ReadFile(path)
+	var cacheToken CacheToken
+	if err != nil {
+		return cacheToken
+	}
+
+	err = json.Unmarshal(file, &cacheToken)
+	if err != nil {
+		return cacheToken
+	}
+
+	return cacheToken
+
 }
 
 func TemplateRender(ctx context.Context, path string, resultList interface{}, w http.ResponseWriter, r *http.Request) {
@@ -296,7 +337,7 @@ func OIDCLoginHandler(w http.ResponseWriter, r *http.Request) {
 		ctxMap["nonce"] = currentNonce
 		ctxMap["params"] = params
 		url := OIDCLoginUrlGenerate(r.Context(), oidcMap["oidc-issuer-url"][0], oidcMap["oidc-client-id"][0], "http://localhost:8000", oidcMap["oidc-extra-scope"], params, currentNonce, currentState)
-		w.WriteHeader(http.StatusUnauthorized)
+		w.WriteHeader(200)
 		//response := map[string]string{"url": url}
 		w.Write([]byte(url))
 
@@ -310,6 +351,10 @@ func OIDCLoginHandler(w http.ResponseWriter, r *http.Request) {
 func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	if ctxMap["oidcMap"] == nil {
+		GetUserIsOIDC(r.Context())
+
+	}
+	if ctxMap["oidcMap"] == nil {
 		w.WriteHeader(401)
 		w.Write([]byte("need to login"))
 		return
@@ -320,15 +365,23 @@ func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
 	oidcClientId := oidcMap["oidc-client-id"][0]
 	oidcExtraScopes := oidcMap["oidc-extra-scope"]
 	conf := ctxMap["oidcConfig"].(*oauth2.Config)
+
 	key := Key{
 		IssuerURL:   oidcIssuerUrl,
 		ClientID:    oidcClientId,
 		ExtraScopes: oidcExtraScopes,
 	}
 	filename, _ := ComputeFilename(key)
-	accessToken := ctxMap["cacheToken-"+filename+"-"+ctxMap["environment"].(string)].(CacheToken).AccessToken
+	cacheToken := ctxMap["cacheToken-"+filename]
+	if cacheToken == nil {
+		w.WriteHeader(401)
+		w.Write([]byte("need to login, cacheToken is nil"))
+		return
+	}
+	accessToken := cacheToken.(CacheToken).AccessToken
 	userInfo, err := conf.Client(context.Background(), &oauth2.Token{AccessToken: accessToken}).Get(oidcIssuerUrl + "/v1/userinfo")
 	if err != nil {
+
 		w.WriteHeader(401)
 		w.Write([]byte("need to login"))
 	}

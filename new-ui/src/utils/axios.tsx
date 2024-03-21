@@ -1,5 +1,6 @@
 import axios from "axios";
 import Swal from 'sweetalert2'
+import { OKTA, USERINFO } from "./endpoints";
 export const axiosInstance = axios.create(
     {
         timeout: 3500
@@ -19,3 +20,27 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(error);
     }
   );
+
+  export const  authVerify = async () => {
+    return await axiosInstance
+      .get(USERINFO)
+      .then(async (response) => {
+        if (response.status === 200) {
+          return response.data;
+        }
+        if (response.status === 401) {
+            console.log("Unauthorized");
+
+            const url =  await axios.get(OKTA);
+            console.log(url);
+        }
+      })
+      .catch(async (error) => {
+        console.log(error);
+   
+          console.log("Unauthorized");
+          const url =  await axios.get(OKTA);
+          window.location.href=url.data;
+        
+      });
+  }

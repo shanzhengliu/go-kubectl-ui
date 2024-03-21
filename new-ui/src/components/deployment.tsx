@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { axiosInstance } from "../utils/axios";
+import { authVerify, axiosInstance } from "../utils/axios";
 import { DEPLOYMENT, DEPLOYMENTYAML } from "../utils/endpoints";
 import { DisplayTable } from "./displayTable";
 import { Button } from "flowbite-react";
 
 export function Deployment() {
   const [renderData, setRenderData] = useState<any[]>([]);
-  const fetchData = () => {
+  const fetchData = async () => {
+    await authVerify();
     axiosInstance
       .get(DEPLOYMENT, {
         data: {},

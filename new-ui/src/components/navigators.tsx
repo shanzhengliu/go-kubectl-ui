@@ -8,6 +8,7 @@ import { Resource } from "./resource";
 import { LOCALSHELL } from "../utils/endpoints";
 
 export const Navigator = () => {
+  
   const menuMap: { [key: string]: any } = {
     Pod: <Pod />,
     Deployment: <Deployment />,

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { DisplayTable } from "./displayTable";
-import { axiosInstance } from "../utils/axios";
+import { authVerify, axiosInstance } from "../utils/axios";
 import { SERVICE } from "../utils/endpoints";
 
 export function Service() {
   const [renderData, setRenderData] = useState<any[][]>([]);
-  const fetchData = () => {
+  const fetchData = async () => {
+    await authVerify();
     axiosInstance
     .get(SERVICE, {
       data: {},

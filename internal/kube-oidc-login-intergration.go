@@ -126,15 +126,13 @@ func OktaCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	filename, _ := ComputeFilename(key)
 	idToken := token.Extra("id_token").(string)
 	kubeDefaultPath := ctxMap["kubeDefaultPath"].(string)
-	currentContext := ctxMap["environment"].(string)
-
-	writePath := kubeDefaultPath + "/cache/oidc-login" + "/" + filename
+	writePath := kubeDefaultPath + "/cache/oidc-login/" + filename
 	accessToken := token.AccessToken
 	cacheToken := CacheToken{
 		IdToken:     idToken,
 		AccessToken: accessToken,
 	}
-	ctxMap["cacheToken-"+filename+"-"+currentContext] = cacheToken
+	ctxMap["cacheToken-"+filename] = cacheToken
 	jsonToken, _ := json.Marshal(cacheToken)
 	os.WriteFile(writePath, jsonToken, 0777)
 	w.Write([]byte("<html><script>(function(){ window.location.href=\"http://localhost:" + ctxMap["applicationPort"].(string) + "\"; })()</script></html>"))
