@@ -31,6 +31,11 @@ type CacheToken struct {
 	IdToken     string `json:"id_token"`
 }
 
+type OidcLoginSuccess struct {
+	AccessToken string                 `json:"access_token"`
+	UserInfo    map[string]interface{} `json:"user_info"`
+}
+
 func GenerateStateAndNonce() (string, string, Params) {
 	currentState, _ := NewRand32()
 	currentNonce, _ := NewRand32()
@@ -121,14 +126,16 @@ func OktaCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	filename, _ := ComputeFilename(key)
 	idToken := token.Extra("id_token").(string)
 	kubeDefaultPath := ctxMap["kubeDefaultPath"].(string)
+	currentContext := ctxMap["environment"].(string)
 
 	writePath := kubeDefaultPath + "/cache/oidc-login" + "/" + filename
-	accesToken := token.AccessToken
+	accessToken := token.AccessToken
 	cacheToken := CacheToken{
-		IdToken: idToken,
+		IdToken:     idToken,
+		AccessToken: accessToken,
 	}
+	ctxMap["cacheToken-"+filename+"-"+currentContext] = cacheToken
 	jsonToken, _ := json.Marshal(cacheToken)
-	os.WriteFile(writePath, jsonToken, 777)
-	w.Write([]byte(accesToken))
-
+	os.WriteFile(writePath, jsonToken, 0777)
+	w.Write([]byte("<html><script>(function(){ window.location.href=\"http://localhost:" + ctxMap["applicationPort"].(string) + "\"; })()</script></html>"))
 }

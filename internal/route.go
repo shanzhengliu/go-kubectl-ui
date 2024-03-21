@@ -12,6 +12,7 @@ import (
 	terminal "github.com/maoqide/kubeutil/pkg/terminal"
 	wsterminal "github.com/maoqide/kubeutil/pkg/terminal/websocket"
 	"golang.org/x/exp/maps"
+	"golang.org/x/oauth2"
 	apiv1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -284,42 +285,56 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	TemplateRender(r.Context(), "index", "", w, r)
 }
 
-func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
-	username, _ := GetUserInfo(r.Context(), r.URL.Query().Get("namespace"))
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(username)
-}
-
 func OIDCLoginHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
-	configPath := ctxMap["configPath"].(string)
-	currentContext := ctxMap["environment"].(string)
+	isOIDC := GetUserIsOIDC(r.Context())
 
-	config, err := clientcmd.LoadFromFile(configPath)
-	if err != nil {
-		fmt.Printf(err.Error())
-	}
-	user := config.Contexts[currentContext].AuthInfo
-	userInfo, exists := config.AuthInfos[user]
-	if !exists {
-		fmt.Printf(user)
-	}
-	if userInfo.Exec != nil {
-		ConfigUserExecArgsMap(userInfo.Exec.Args, ctxMap, "oidcMap")
+	if isOIDC {
 		oidcMap := ctxMap["oidcMap"].(map[string][]string)
-		if _, exists := oidcMap["oidc-login"]; exists {
-			currentState, currentNonce, params := GenerateStateAndNonce()
-			ctxMap["state"] = currentState
-			ctxMap["nonce"] = currentNonce
-			ctxMap["params"] = params
-			url := OIDCLoginUrlGenerate(r.Context(), oidcMap["oidc-issuer-url"][0], oidcMap["oidc-client-id"][0], "http://localhost:8000", oidcMap["oidc-extra-scope"], params, currentNonce, currentState)
-			w.WriteHeader(http.StatusUnauthorized)
-			//response := map[string]string{"url": url}
-			w.Write([]byte(url))
-		}
+		currentState, currentNonce, params := GenerateStateAndNonce()
+		ctxMap["state"] = currentState
+		ctxMap["nonce"] = currentNonce
+		ctxMap["params"] = params
+		url := OIDCLoginUrlGenerate(r.Context(), oidcMap["oidc-issuer-url"][0], oidcMap["oidc-client-id"][0], "http://localhost:8000", oidcMap["oidc-extra-scope"], params, currentNonce, currentState)
+		w.WriteHeader(http.StatusUnauthorized)
+		//response := map[string]string{"url": url}
+		w.Write([]byte(url))
 
 	} else {
-		fmt.Println("use don't have exec command")
+		w.WriteHeader(201)
+		w.Write([]byte("not oidc"))
 	}
 
+}
+
+func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	if ctxMap["oidcMap"] == nil {
+		w.WriteHeader(401)
+		w.Write([]byte("need to login"))
+		return
+	}
+	oidcMap := ctxMap["oidcMap"].(map[string][]string)
+
+	oidcIssuerUrl := oidcMap["oidc-issuer-url"][0]
+	oidcClientId := oidcMap["oidc-client-id"][0]
+	oidcExtraScopes := oidcMap["oidc-extra-scope"]
+	conf := ctxMap["oidcConfig"].(*oauth2.Config)
+	key := Key{
+		IssuerURL:   oidcIssuerUrl,
+		ClientID:    oidcClientId,
+		ExtraScopes: oidcExtraScopes,
+	}
+	filename, _ := ComputeFilename(key)
+	accessToken := ctxMap["cacheToken-"+filename+"-"+ctxMap["environment"].(string)].(CacheToken).AccessToken
+	userInfo, err := conf.Client(context.Background(), &oauth2.Token{AccessToken: accessToken}).Get(oidcIssuerUrl + "/v1/userinfo")
+	if err != nil {
+		w.WriteHeader(401)
+		w.Write([]byte("need to login"))
+	}
+	defer userInfo.Body.Close()
+	var result map[string]interface{}
+	json.NewDecoder(userInfo.Body).Decode(&result)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
 }
