@@ -75,12 +75,18 @@ func ConfigUserExecArgsMap(args []string, ctxMap map[string]interface{}, mapKey 
 	ctxMap[mapKey] = oidcMap
 }
 
-func OIDCLoginUrlGenerate(context context.Context, oidcIssuerUrl string, clientId string, redirectUrl string, scopes []string, params Params, currentNonce string, currentState string) string {
+func OIDCLoginUrlGenerate(context context.Context, oidcIssuerUrl string, clientId string, ClientSecret string, redirectUrl string, scopes []string, params Params, currentNonce string, currentState string) string {
 	ctxMap := context.Value("map").(map[string]interface{})
 	currentContext := ctxMap["environment"].(string)
 	conf := ctxMap["oidcConfig-"+currentContext].(*oauth2.Config)
-	url := conf.AuthCodeURL(currentState, oauth2.AccessTypeOffline, oauth2.SetAuthURLParam("code_challenge", params.CodeChallenge),
-		oauth2.SetAuthURLParam("code_challenge_method", params.CodeChallengeMethod), oauth2.SetAuthURLParam("nonce", currentNonce))
+	url := ""
+	if ClientSecret != "" {
+		url = conf.AuthCodeURL(currentState, oauth2.AccessTypeOffline, oauth2.SetAuthURLParam("code_challenge", params.CodeChallenge),
+			oauth2.SetAuthURLParam("code_challenge_method", params.CodeChallengeMethod), oauth2.SetAuthURLParam("nonce", currentNonce), oauth2.SetAuthURLParam("client_secret", ClientSecret))
+	} else {
+		url = conf.AuthCodeURL(currentState, oauth2.AccessTypeOffline, oauth2.SetAuthURLParam("code_challenge", params.CodeChallenge),
+			oauth2.SetAuthURLParam("code_challenge_method", params.CodeChallengeMethod), oauth2.SetAuthURLParam("nonce", currentNonce))
+	}
 	return url
 
 }
@@ -94,6 +100,10 @@ func OktaCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	oidcMap := ctxMap["oidcMap-"+currentContext].(map[string][]string)
 	oidcIssuerUrl := oidcMap["oidc-issuer-url"][0]
 	oidcClientId := oidcMap["oidc-client-id"][0]
+	oidcClientSecret := ""
+	if oidcMap["oidc-client-serect"] != nil {
+		oidcClientSecret = oidcMap["oidc-client-serect"][0]
+	}
 	oidcExtraScopes := oidcMap["oidc-extra-scope"]
 	if receivedState != ctxMap["state"] {
 
@@ -111,9 +121,10 @@ func OktaCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	key := Key{
-		IssuerURL:   oidcIssuerUrl,
-		ClientID:    oidcClientId,
-		ExtraScopes: oidcExtraScopes,
+		IssuerURL:    oidcIssuerUrl,
+		ClientID:     oidcClientId,
+		ExtraScopes:  oidcExtraScopes,
+		ClientSecret: oidcClientSecret,
 	}
 
 	filename, _ := ComputeFilename(key)

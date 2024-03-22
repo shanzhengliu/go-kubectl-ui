@@ -339,7 +339,11 @@ func OIDCLoginHandler(w http.ResponseWriter, r *http.Request) {
 		ctxMap["state"] = currentState
 		ctxMap["nonce"] = currentNonce
 		ctxMap["params"] = params
-		url := OIDCLoginUrlGenerate(r.Context(), oidcMap["oidc-issuer-url"][0], oidcMap["oidc-client-id"][0], "http://localhost:8000", oidcMap["oidc-extra-scope"], params, currentNonce, currentState)
+		oidcClientSecret := ""
+		if oidcMap["oidc-client-secret"] != nil {
+			oidcClientSecret = oidcMap["oidc-client-secret"][0]
+		}
+		url := OIDCLoginUrlGenerate(r.Context(), oidcMap["oidc-issuer-url"][0], oidcMap["oidc-client-id"][0], oidcClientSecret, "http://localhost:8000", oidcMap["oidc-extra-scope"], params, currentNonce, currentState)
 		w.WriteHeader(200)
 		//response := map[string]string{"url": url}
 		w.Write([]byte(url))
@@ -363,13 +367,18 @@ func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
 
 	oidcIssuerUrl := oidcMap["oidc-issuer-url"][0]
 	oidcClientId := oidcMap["oidc-client-id"][0]
+	oidcClientSecret := ""
+	if oidcMap["oidc-client-serect"] != nil {
+		oidcClientSecret = oidcMap["oidc-client-serect"][0]
+	}
 	oidcExtraScopes := oidcMap["oidc-extra-scope"]
 	conf := ctxMap["oidcConfig-"+ctxMap["environment"].(string)].(*oauth2.Config)
 
 	key := Key{
-		IssuerURL:   oidcIssuerUrl,
-		ClientID:    oidcClientId,
-		ExtraScopes: oidcExtraScopes,
+		IssuerURL:    oidcIssuerUrl,
+		ClientID:     oidcClientId,
+		ExtraScopes:  oidcExtraScopes,
+		ClientSecret: oidcClientSecret,
 	}
 	filename, _ := ComputeFilename(key)
 	cacheToken := ctxMap["cacheToken-"+filename]

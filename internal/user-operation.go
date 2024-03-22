@@ -28,11 +28,18 @@ func GenerateKubeUserAuthMap(ctx context.Context, context string) {
 	}
 	if userInfo.Exec != nil {
 		ConfigUserExecArgsMap(userInfo.Exec.Args, ctxMap, "oidcMap-"+context)
+
 		oidcMap := ctxMap["oidcMap-"+context].(map[string][]string)
+		clientSecret := ""
+		if oidcMap["oidc-client-secret"] != nil {
+			clientSecret = oidcMap["oidc-client-secret"][0]
+		}
+
 		conf := &oauth2.Config{
-			ClientID:    oidcMap["oidc-client-id"][0],
-			RedirectURL: "http://localhost:8000",
-			Scopes:      oidcMap["oidc-extra-scope"],
+			ClientID:     oidcMap["oidc-client-id"][0],
+			RedirectURL:  "http://localhost:8000",
+			ClientSecret: clientSecret,
+			Scopes:       oidcMap["oidc-extra-scope"],
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  oidcMap["oidc-issuer-url"][0] + "/v1/authorize",
 				TokenURL: oidcMap["oidc-issuer-url"][0] + "/v1/token",
