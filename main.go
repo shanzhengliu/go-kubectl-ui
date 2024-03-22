@@ -137,6 +137,7 @@ func main() {
 		}
 		f.Write(decodedMsg)
 	})
+
 	router.PathPrefix("/assets/").Handler(http.FileServer(http.FS(subFs)))
 	router.PathPrefix("/xterm/").Handler(http.FileServer(http.FS(subFs)))
 	router.PathPrefix("/js/").Handler(http.FileServer(http.FS(subFs)))
@@ -163,6 +164,7 @@ func main() {
 	router.HandleFunc("/ws/localshell", Chain(func(w http.ResponseWriter, r *http.Request) { m.HandleRequest(w, r) }, ContextAdd(ctx)))
 	router.HandleFunc("/api/okta", Chain(internal.OIDCLoginHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/userinfo", Chain(internal.UserInfoHandler, ContextAdd(ctx)))
+
 	cor := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: false,

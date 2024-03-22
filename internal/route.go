@@ -52,9 +52,22 @@ func RouteInit(ctx context.Context, path string) {
 	}
 
 }
+func createDirIfNotExist(dir string) error {
+
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err := os.MkdirAll(dir, 0777)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 func oktaCacheInitFromOS(ctxMap map[string]interface{}) {
-	files, err := os.ReadDir(ctxMap["kubeDefaultPath"].(string) + "/cache/oidc-login")
+	cachePath := ctxMap["kubeDefaultPath"].(string) + "/cache/oidc-login"
+	err := createDirIfNotExist(cachePath)
+	files, err := os.ReadDir(cachePath)
+
 	if err != nil {
 		fmt.Println("Error reading directory:", err)
 		return

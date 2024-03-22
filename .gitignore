@@ -3,3 +3,4 @@ web-kubectl
 web-kubectl.exe
 .idea
 frontend-build
+docker-compose-local.yml
