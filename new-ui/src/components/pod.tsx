@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { DisplayTable } from "./displayTable";
-import { axiosInstance } from "../utils/axios";
+import { authVerify, axiosInstance } from "../utils/axios";
 import Swal from "sweetalert2";
 import { POD, PODLOGS, PODYAML, WEBSHELL } from "../utils/endpoints";
 import { Button } from "flowbite-react";
 export function Pod() {
   const [renderData, setRenderData] = useState<any[][]>([]);
-  const dataFetch = () => {
+  const dataFetch = async () => {
+    await authVerify();
     axiosInstance
       .get(POD, {
         data: {},

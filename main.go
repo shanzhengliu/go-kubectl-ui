@@ -50,13 +50,19 @@ func main() {
 	var port string
 	var path string
 	var websitePassword string
+	var kubeDefaultPath string
 
-	flag.StringVar(&config, "config", "minikube", "config context: eg: minikube")
+	flag.StringVar(&config, "config", "", "config context: eg: minikube")
 	flag.StringVar(&namespace, "namespace", "default", "namespace: eg: namespate")
 	flag.StringVar(&port, "port", "8080", "port: eg: 8080")
 	flag.StringVar(&path, "path", "NONE", "path: eg: /root/.kube/config")
 	flag.StringVar(&websitePassword, "websitePassword", "", "password: eg: 123456")
+	flag.StringVar(&kubeDefaultPath, "kubeDefaultPath", "/root/.kube", "kubeDefaultPath: eg: /root/.kube")
+
 	flag.Parse()
+	if config == "" {
+		config = internal.GetCurrentContextFromKubeCmd()
+	}
 	if os.Getenv("KUBE_CONFIG") != "" {
 		config = os.Getenv("KUBE_CONFIG")
 	}
@@ -73,6 +79,9 @@ func main() {
 	if os.Getenv("KUBE_WEBSITE_PASSWORD") != "" {
 		websitePassword = os.Getenv("KUBE_WEBSITE_PASSWORD")
 	}
+	if os.Getenv("KUBE_DEFAULT_PATH") != "" {
+		kubeDefaultPath = os.Getenv("KUBE_DEFAULT_PATH")
+	}
 	fmt.Println("config: " + config)
 	fmt.Println("namespace: " + namespace)
 	fmt.Println("port: " + port)
@@ -87,6 +96,8 @@ func main() {
 	ctxMap["static"] = frontend
 	ctxMap["namespace"] = namespace
 	ctxMap["websitePassword"] = websitePassword
+	ctxMap["kubeDefaultPath"] = kubeDefaultPath
+	ctxMap["applicationPort"] = port
 	if path == "NONE" {
 		path = internal.Kubeconfig()
 	}
@@ -126,6 +137,7 @@ func main() {
 		}
 		f.Write(decodedMsg)
 	})
+
 	router.PathPrefix("/assets/").Handler(http.FileServer(http.FS(subFs)))
 	router.PathPrefix("/xterm/").Handler(http.FileServer(http.FS(subFs)))
 	router.PathPrefix("/js/").Handler(http.FileServer(http.FS(subFs)))
@@ -138,6 +150,7 @@ func main() {
 	router.HandleFunc("/pod", Chain(internal.PodListHandler, ContextAdd(ctx)))
 	router.HandleFunc("/service", Chain(internal.ServiceListHandler, ContextAdd(ctx)))
 	router.HandleFunc("/resource", Chain(internal.ResourceUseageHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/user-info", Chain(internal.UserInfoHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/configmap-detail", Chain(internal.ConfigMapDetailHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/context-change", Chain(internal.ContextChangeHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/context-list", Chain(internal.ContextListHandler, ContextAdd(ctx)))
@@ -149,14 +162,39 @@ func main() {
 	router.HandleFunc("/localshell", Chain(internal.LocalShellHandler, ContextAdd(ctx)))
 	router.HandleFunc("/ws/webshell", Chain(internal.ServeWsTerminalHandler, ContextAdd(ctx)))
 	router.HandleFunc("/ws/localshell", Chain(func(w http.ResponseWriter, r *http.Request) { m.HandleRequest(w, r) }, ContextAdd(ctx)))
+	router.HandleFunc("/api/okta", Chain(internal.OIDCLoginHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/userinfo", Chain(internal.UserInfoHandler, ContextAdd(ctx)))
+
 	cor := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: false,
 		AllowedHeaders:   []string{"*"},
 	})
 	corHandler := cor.Handler(router)
-	fmt.Println("listening: " + port + " port")
-	fmt.Println("link: http://localhost:" + port)
-	log.Fatal(http.ListenAndServe(":"+port, corHandler))
+
+	// 8000 okta
+	oktaRouter := mux.NewRouter()
+	oktaRouter.HandleFunc("/", Chain(internal.OktaCallbackHandler, ContextAdd(ctx)))
+	corOkta := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: false,
+		AllowedHeaders:   []string{"*"},
+	})
+	corOktaHandler := corOkta.Handler(oktaRouter)
+	corOkta.Handler(oktaRouter)
+
+	go func() {
+		fmt.Println("listening: " + port + " port")
+		fmt.Println("link: http://localhost:" + port)
+		log.Fatal(http.ListenAndServe(":"+port, corHandler))
+	}()
+
+	go func() {
+		fmt.Println("listening:8000")
+		fmt.Println("link: http://localhost:8000")
+		log.Fatal(http.ListenAndServe(":8000", corOktaHandler))
+	}()
+
+	select {}
 
 }

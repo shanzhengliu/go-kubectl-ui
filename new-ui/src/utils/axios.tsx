@@ -1,5 +1,6 @@
 import axios from "axios";
 import Swal from 'sweetalert2'
+import { OKTA, USERINFO } from "./endpoints";
 export const axiosInstance = axios.create(
     {
         timeout: 3500
@@ -13,9 +14,48 @@ axiosInstance.interceptors.response.use(
       if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
         Swal.fire({
             icon: "error",
-            html: '<div style="text-align:left">Following steps may fixed the timeout issue: <br>  1: access okta listen url like <a class="text-blue-700" href="http://localhost:8000", target=_"blank">http://localhost:8000</a> for okta login <br> 2:check with administator for permissions <br> 3: check cluter health maybe it is down</div>',
+            text: "Maybe your don't have permission to load the data",
           });
       }
       return Promise.reject(error);
     }
   );
+  
+  const openOkta = async () => {
+    const url = await axios.get(OKTA);
+    window.open(url.data);
+  }
+
+ 
+  export const  authVerify = async () => {
+    return await axiosInstance
+      .get(USERINFO)
+      .then(async (response) => {
+        if (response.status === 200) {
+          
+          return response.data;
+        }
+      })
+      .catch(async (error) => {
+        console.log(error);
+       
+        Swal.fire({
+            icon: "error",
+            text: "You are not authorized to access this page, you can click the button to login with Okta. or close the modal and switch the context",
+            showConfirmButton: false, 
+            html: '<div>You may need to login via Okta</div><button id="innerButton" class="swal2-confirm swal2-styled">Okta</button><button id="close"  class="swal2-danger swal2-styled" >Close</button>',
+            didOpen: () => {
+              const innerButton = document.getElementById('innerButton');
+              if (innerButton) {
+                innerButton.addEventListener('click', openOkta);
+              }
+              const closeButton = document.getElementById('close');
+              if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                  Swal.close();
+                });
+              }
+          }
+         });
+      });
+  }

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { axiosInstance } from "../utils/axios";
+import { authVerify, axiosInstance } from "../utils/axios";
 import { INGRESS } from "../utils/endpoints";
 import { DisplayTable } from "./displayTable";
 
 export function Ingress() {
     const [renderData, setRenderData] = useState<any[]>([]);
-    const fetchData = () => {
+    const fetchData = async () => {
+      await authVerify();
       axiosInstance
         .get(INGRESS, {
           data: {},

@@ -1,0 +1,16 @@
+services:
+  go-kubectl-web:
+    image: samliu960522/go-kubectl-web:latest
+    pull_policy: always
+    ports:
+        - "8080:8080"
+        - "8000:8000"
+    volumes:
+      - {your config file full path}:/root/.kube/config
+    environment:
+      - KUBE_NAMESPACE={your startup namespace, like "default"}
+      - KUBE_CONFIG={your start cluster name, like minikube}
+      - KUBE_PORT={your application running port, default value is 8080, please keep this value the same as the port your are forwarding, like 9090:9090}
+
+
+

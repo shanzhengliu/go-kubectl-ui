@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { DisplayTable } from "./displayTable";
-import { axiosInstance } from "../utils/axios";
+import { authVerify, axiosInstance } from "../utils/axios";
 import { CONFIGMAP, CONFIGMAP_DETAIL } from "../utils/endpoints";
 import { Button, Modal } from "flowbite-react";
 import hljs from "highlight.js";
@@ -9,7 +9,8 @@ export function Configmap() {
   const [openModal, setOpenModal] = useState(false);
   const [modelHeader, setModelHeader] = useState("");
   const [modalData, setModalData] = useState<{ [key: string]: any }>({});
-  const dataFecth = () => {
+  const dataFecth = async () => {
+    await authVerify();
     axiosInstance
       .get(CONFIGMAP, {
         data: {},

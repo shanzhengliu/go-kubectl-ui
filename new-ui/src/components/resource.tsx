@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { axiosInstance } from "../utils/axios";
+import { authVerify, axiosInstance } from "../utils/axios";
 import { RESOURCE } from "../utils/endpoints";
 import ReactECharts from "echarts-for-react";
 import { colors } from "../utils/constant";
 
 import { ContextSwitcher } from "./contextSwitcher";
+import { Button } from "flowbite-react";
 export function Resource() {
   const [renderData, setRenderData] = useState<any[][]>([]);
   const textFirstCharCapitalize = (value: string) => {
@@ -63,7 +64,8 @@ export function Resource() {
 
     return option;
   };
-  const fetchData = () => {
+  const fetchData = async() => {
+    await authVerify();
     axiosInstance
       .get(RESOURCE, {
         data: {},
@@ -91,6 +93,11 @@ export function Resource() {
   return (
     <div>
       <ContextSwitcher onSwitch={fetchData} />
+      <div className="flex justify-end items-center mb-4">
+        <Button className="mr-4" color={"success"} onClick={fetchData}>
+          Refresh
+        </Button>
+      </div>   
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {renderData.map((option, index) => (
           <ReactECharts key={index} option={option} />

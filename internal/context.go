@@ -24,10 +24,13 @@ func ContextChange(ctx context.Context, contextName string, namespace string) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	clientset, err := kubernetes.NewForConfig(restconfig)
+	clientset, _ := kubernetes.NewForConfig(restconfig)
+	restclient, _ := rest.RESTClientFor(restconfig)
 	ctxMap["clientSet"] = clientset
 	ctxMap["environment"] = contextName
 	ctxMap["namespace"] = namespace
+	ctxMap["restConfig"] = restconfig
+	ctxMap["restClient"] = restclient
 }
 
 type KubeContext struct {
@@ -47,4 +50,10 @@ func CurrentContext(ctx context.Context) KubeContext {
 func ContextList(ctx context.Context) []string {
 	ctxMap := ctx.Value("map").(map[string]interface{})
 	return ctxMap["contextList"].([]string)
+}
+
+func GetCurrentContextFromKubeCmd() string {
+	kubeconfig := clientcmd.NewDefaultClientConfigLoadingRules().GetDefaultFilename()
+	config, _ := clientcmd.LoadFromFile(kubeconfig)
+	return config.CurrentContext
 }

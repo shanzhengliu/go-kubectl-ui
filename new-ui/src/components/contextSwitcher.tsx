@@ -20,6 +20,7 @@ export function ContextSwitcher(props: { onSwitch: () => void }) {
   };
 
   useEffect(() => {
+    
     axiosInstance
       .get(CURRENT_CONTEXT, {
         data: {},
@@ -70,6 +71,7 @@ export function ContextSwitcher(props: { onSwitch: () => void }) {
         setCurrentNamespace(inputNamespace);
         props.onSwitch();
         setOpenModal(false);
+        window.location.reload();
       });
   };
 

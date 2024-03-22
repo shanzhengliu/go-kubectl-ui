@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"text/template"
 
 	terminal "github.com/maoqide/kubeutil/pkg/terminal"
 	wsterminal "github.com/maoqide/kubeutil/pkg/terminal/websocket"
 	"golang.org/x/exp/maps"
+	"golang.org/x/oauth2"
 	apiv1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -42,7 +44,64 @@ func RouteInit(ctx context.Context, path string) {
 	ctxMap["restConfig"] = config
 	ctxMap["configPath"] = path
 	ctxMap["clientSet"] = clientset
+	// ctxMap["restClient"] = restClient
 	ctxMap["contextList"] = maps.Keys(KubeconfigList(path))
+	oktaCacheInitFromOS(ctxMap)
+	for _, currentCtx := range ctxMap["contextList"].([]string) {
+		GenerateKubeUserAuthMap(ctx, currentCtx)
+	}
+
+}
+func createDirIfNotExist(dir string) error {
+
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err := os.MkdirAll(dir, 0777)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func oktaCacheInitFromOS(ctxMap map[string]interface{}) {
+	cachePath := ctxMap["kubeDefaultPath"].(string) + "/cache/oidc-login"
+	err := createDirIfNotExist(cachePath)
+	files, err := os.ReadDir(cachePath)
+
+	if err != nil {
+		fmt.Println("Error reading directory:", err)
+		return
+	}
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		if file.Name() == "oidc-login" {
+			continue
+		}
+
+		cache := LoadCacheToken(ctxMap["kubeDefaultPath"].(string) + "/cache/oidc-login/" + file.Name())
+
+		if cache.AccessToken != "" {
+			ctxMap["cacheToken-"+file.Name()] = cache
+		}
+	}
+}
+
+func LoadCacheToken(path string) CacheToken {
+	file, err := os.ReadFile(path)
+	var cacheToken CacheToken
+	if err != nil {
+		return cacheToken
+	}
+
+	err = json.Unmarshal(file, &cacheToken)
+	if err != nil {
+		return cacheToken
+	}
+
+	return cacheToken
+
 }
 
 func TemplateRender(ctx context.Context, path string, resultList interface{}, w http.ResponseWriter, r *http.Request) {
@@ -217,7 +276,6 @@ func ServeWsTerminalHandler(w http.ResponseWriter, r *http.Request) {
 		pty.Write([]byte(msg))
 		pty.Done()
 	}
-	return
 }
 
 func PodExec(clientset *kubernetes.Clientset, restconfig *rest.Config, cmd []string, ptyHandler terminal.PtyHandler, namespace string, podName string, containerName string) error {
@@ -282,4 +340,77 @@ func ResourceUseageHandler(w http.ResponseWriter, r *http.Request) {
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	TemplateRender(r.Context(), "index", "", w, r)
+}
+
+func OIDCLoginHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	isOIDC := GetUserIsOIDC(r.Context(), ctxMap["environment"].(string))
+
+	if isOIDC {
+		oidcMap := ctxMap["oidcMap-"+ctxMap["environment"].(string)].(map[string][]string)
+		currentState, currentNonce, params := GenerateStateAndNonce()
+		ctxMap["state"] = currentState
+		ctxMap["nonce"] = currentNonce
+		ctxMap["params"] = params
+		oidcClientSecret := ""
+		if oidcMap["oidc-client-secret"] != nil {
+			oidcClientSecret = oidcMap["oidc-client-secret"][0]
+		}
+		url := OIDCLoginUrlGenerate(r.Context(), oidcMap["oidc-issuer-url"][0], oidcMap["oidc-client-id"][0], oidcClientSecret, "http://localhost:8000", oidcMap["oidc-extra-scope"], params, currentNonce, currentState)
+		w.WriteHeader(200)
+		//response := map[string]string{"url": url}
+		w.Write([]byte(url))
+
+	} else {
+		w.WriteHeader(201)
+		w.Write([]byte("not oidc"))
+	}
+
+}
+
+func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+
+	if ctxMap["oidcMap-"+ctxMap["environment"].(string)] == nil {
+		w.WriteHeader(200)
+		w.Write([]byte("don't need to login"))
+		return
+	}
+	oidcMap := ctxMap["oidcMap-"+ctxMap["environment"].(string)].(map[string][]string)
+
+	oidcIssuerUrl := oidcMap["oidc-issuer-url"][0]
+	oidcClientId := oidcMap["oidc-client-id"][0]
+	oidcClientSecret := ""
+	if oidcMap["oidc-client-serect"] != nil {
+		oidcClientSecret = oidcMap["oidc-client-serect"][0]
+	}
+	oidcExtraScopes := oidcMap["oidc-extra-scope"]
+	conf := ctxMap["oidcConfig-"+ctxMap["environment"].(string)].(*oauth2.Config)
+
+	key := Key{
+		IssuerURL:    oidcIssuerUrl,
+		ClientID:     oidcClientId,
+		ExtraScopes:  oidcExtraScopes,
+		ClientSecret: oidcClientSecret,
+	}
+	filename, _ := ComputeFilename(key)
+	cacheToken := ctxMap["cacheToken-"+filename]
+	if cacheToken == nil {
+		w.WriteHeader(401)
+		w.Write([]byte("need to login, cacheToken is nil"))
+		return
+	}
+	accessToken := cacheToken.(CacheToken).AccessToken
+	userInfo, err := conf.Client(context.Background(), &oauth2.Token{AccessToken: accessToken}).Get(oidcIssuerUrl + "/v1/userinfo")
+	if err != nil || userInfo.StatusCode != 200 {
+		w.WriteHeader(401)
+		w.Write([]byte("need to login"))
+		return
+	}
+	defer userInfo.Body.Close()
+	var result map[string]interface{}
+	json.NewDecoder(userInfo.Body).Decode(&result)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
 }
