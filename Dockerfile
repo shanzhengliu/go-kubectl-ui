@@ -1,5 +1,5 @@
 ##frontend build
-FROM node:20-slim AS NodeBuild
+FROM  --platform=$BUILDPLATFORM node:20-slim AS NodeBuild
 WORKDIR /app
 COPY ./new-ui/ /app
 RUN npm install -g pnpm
@@ -8,14 +8,21 @@ RUN pnpm build
 ##node build end
 
 
-FROM golang:1.20.6-alpine3.18 AS BuildStage
+FROM --platform=$BUILDPLATFORM golang:1.20.6-alpine3.18 AS BuildStage
 
 WORKDIR /app
 COPY . .
 COPY --from=NodeBuild /app/dist/ /app/frontend-build
 RUN apk --no-cache add upx
 RUN go mod download
-RUN go build -o /app/main .
+RUN echo "Building for $TARGETPLATFORM" && \
+    if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+        export GOOS=linux GOARCH=amd64; \
+    elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+        export GOOS=linux GOARCH=arm64; \
+    fi && \
+    go mod download && \
+    go build -o /app/main .
 RUN upx /app/main
 
 FROM alpine:latest as ENVStage
