@@ -41,54 +41,23 @@ func MapToString(data map[string]string) string {
 	return result
 }
 
-// func encrypt(text string, key []byte) (string, error) {
-//     plaintext := []byte(text)
+func GetCacheFileNameByCtxMap(ctxMap map[string]interface{}, kubeContext string) string {
 
-//     block, err := aes.NewCipher(key)
-//     if err != nil {
-//         return "", err
-//     }
+	oidcMap := ctxMap["oidcMap-"+kubeContext].(map[string][]string)
+	oidcIssuerUrl := oidcMap["oidc-issuer-url"][0]
+	oidcClientId := oidcMap["oidc-client-id"][0]
+	oidcExtraScopes := oidcMap["oidc-extra-scope"]
+	oidcClientSecret := ""
+	if oidcMap["oidc-client-secret"] != nil {
+		oidcClientSecret = oidcMap["oidc-client-secret"][0]
+	}
+	key := Key{
+		IssuerURL:    oidcIssuerUrl,
+		ClientID:     oidcClientId,
+		ExtraScopes:  oidcExtraScopes,
+		ClientSecret: oidcClientSecret,
+	}
+	filename, _ := ComputeFilename(key)
+	return filename
 
-//     aesGCM, err := cipher.NewGCM(block)
-//     if err != nil {
-//         return "", err
-//     }
-
-//     nonce := make([]byte, aesGCM.NonceSize())
-//     if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-//         return "", err
-//     }
-
-//     ciphertext := aesGCM.Seal(nonce, nonce, plaintext, nil)
-//     return base64.URLEncoding.EncodeToString(ciphertext), nil
-// }
-
-// func decrypt(encryptedText string, key []byte) (string, error) {
-//     enc, err := base64.URLEncoding.DecodeString(encryptedText)
-//     if err != nil {
-//         return "", err
-//     }
-
-//     block, err := aes.NewCipher(key)
-//     if err != nil {
-//         return "", err
-//     }
-
-//     aesGCM, err := cipher.NewGCM(block)
-//     if err != nil {
-//         return "", err
-//     }
-
-//     nonceSize := aesGCM.NonceSize()
-//     if len(enc) < nonceSize {
-//         return "", fmt.Errorf("ciphertext too short")
-//     }
-
-//     nonce, ciphertext := enc[:nonceSize], enc[nonceSize:]
-//     plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
-//     if err != nil {
-//         return "", err
-//     }
-
-//     return string(plaintext), nil
-// }
+}

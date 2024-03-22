@@ -376,30 +376,15 @@ func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("don't need to login"))
 		return
 	}
-	oidcMap := ctxMap["oidcMap-"+ctxMap["environment"].(string)].(map[string][]string)
-
-	oidcIssuerUrl := oidcMap["oidc-issuer-url"][0]
-	oidcClientId := oidcMap["oidc-client-id"][0]
-	oidcClientSecret := ""
-	if oidcMap["oidc-client-serect"] != nil {
-		oidcClientSecret = oidcMap["oidc-client-serect"][0]
-	}
-	oidcExtraScopes := oidcMap["oidc-extra-scope"]
 	conf := ctxMap["oidcConfig-"+ctxMap["environment"].(string)].(*oauth2.Config)
-
-	key := Key{
-		IssuerURL:    oidcIssuerUrl,
-		ClientID:     oidcClientId,
-		ExtraScopes:  oidcExtraScopes,
-		ClientSecret: oidcClientSecret,
-	}
-	filename, _ := ComputeFilename(key)
+	filename := GetCacheFileNameByCtxMap(ctxMap, ctxMap["environment"].(string))
 	cacheToken := ctxMap["cacheToken-"+filename]
 	if cacheToken == nil {
 		w.WriteHeader(401)
 		w.Write([]byte("need to login, cacheToken is nil"))
 		return
 	}
+	oidcIssuerUrl := ctxMap["oidcMap-"+ctxMap["environment"].(string)].(map[string][]string)["oidc-issuer-url"][0]
 	accessToken := cacheToken.(CacheToken).AccessToken
 	userInfo, err := conf.Client(context.Background(), &oauth2.Token{AccessToken: accessToken}).Get(oidcIssuerUrl + "/v1/userinfo")
 	if err != nil || userInfo.StatusCode != 200 {
@@ -413,4 +398,11 @@ func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
+}
+
+func OIDCLogoutHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	OktaLogout(r.Context(), ctxMap["environment"].(string))
+	w.WriteHeader(200)
+	w.Write([]byte("logout"))
 }

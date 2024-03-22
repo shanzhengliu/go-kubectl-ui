@@ -164,6 +164,7 @@ func main() {
 	router.HandleFunc("/ws/localshell", Chain(func(w http.ResponseWriter, r *http.Request) { m.HandleRequest(w, r) }, ContextAdd(ctx)))
 	router.HandleFunc("/api/okta", Chain(internal.OIDCLoginHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/userinfo", Chain(internal.UserInfoHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/oidc-logout", Chain(internal.OIDCLogoutHandler, ContextAdd(ctx)))
 
 	cor := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},

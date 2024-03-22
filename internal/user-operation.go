@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"golang.org/x/oauth2"
 	"k8s.io/client-go/tools/clientcmd"
@@ -48,4 +49,12 @@ func GenerateKubeUserAuthMap(ctx context.Context, context string) {
 		ctxMap["oidcConfig-"+context] = conf
 	}
 
+}
+
+func OktaLogout(ctx context.Context, currentContext string) {
+	ctxMap := ctx.Value("map").(map[string]interface{})
+	filename := GetCacheFileNameByCtxMap(ctxMap, currentContext)
+	cacheFilePath := ctxMap["kubeDefaultPath"].(string) + "/cache/oidc-login/" + filename
+	os.Remove(cacheFilePath)
+	ctxMap["cacheToken-"+filename] = nil
 }

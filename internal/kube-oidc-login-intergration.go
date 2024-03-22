@@ -97,14 +97,7 @@ func OktaCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	currentContext := ctxMap["environment"].(string)
 	params := ctxMap["params"].(Params)
 	conf := ctxMap["oidcConfig-"+currentContext].(*oauth2.Config)
-	oidcMap := ctxMap["oidcMap-"+currentContext].(map[string][]string)
-	oidcIssuerUrl := oidcMap["oidc-issuer-url"][0]
-	oidcClientId := oidcMap["oidc-client-id"][0]
-	oidcClientSecret := ""
-	if oidcMap["oidc-client-serect"] != nil {
-		oidcClientSecret = oidcMap["oidc-client-serect"][0]
-	}
-	oidcExtraScopes := oidcMap["oidc-extra-scope"]
+
 	if receivedState != ctxMap["state"] {
 
 		http.Error(w, "State Incorrect", http.StatusBadRequest)
@@ -120,14 +113,7 @@ func OktaCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	key := Key{
-		IssuerURL:    oidcIssuerUrl,
-		ClientID:     oidcClientId,
-		ExtraScopes:  oidcExtraScopes,
-		ClientSecret: oidcClientSecret,
-	}
-
-	filename, _ := ComputeFilename(key)
+	filename := GetCacheFileNameByCtxMap(ctxMap, currentContext)
 	idToken := token.Extra("id_token").(string)
 	kubeDefaultPath := ctxMap["kubeDefaultPath"].(string)
 	writePath := kubeDefaultPath + "/cache/oidc-login/" + filename
@@ -136,6 +122,7 @@ func OktaCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		IdToken:     idToken,
 		AccessToken: accessToken,
 	}
+
 	ctxMap["cacheToken-"+filename] = cacheToken
 	jsonToken, _ := json.Marshal(cacheToken)
 	os.WriteFile(writePath, jsonToken, 0777)

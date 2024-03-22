@@ -10,7 +10,10 @@ export function Configmap() {
   const [modelHeader, setModelHeader] = useState("");
   const [modalData, setModalData] = useState<{ [key: string]: any }>({});
   const dataFecth = async () => {
-    await authVerify();
+    const response = await authVerify();
+    if (response == "error") {
+      return;
+    }
     axiosInstance
       .get(CONFIGMAP, {
         data: {},

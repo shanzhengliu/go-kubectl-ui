@@ -65,7 +65,10 @@ export function Resource() {
     return option;
   };
   const fetchData = async() => {
-    await authVerify();
+    const response = await authVerify();
+    if (response == "error") {
+      return;
+    }
     axiosInstance
       .get(RESOURCE, {
         data: {},

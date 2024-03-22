@@ -5,10 +5,11 @@ import { Configmap } from "./configmap";
 import { Deployment } from "./deployment";
 import { Ingress } from "./ingress";
 import { Resource } from "./resource";
-import { LOCALSHELL, USERINFO } from "../utils/endpoints";
+import { LOCALSHELL, LOGOUT, USERINFO } from "../utils/endpoints";
+import { Dropdown } from "flowbite-react";
+import { axiosInstance } from "../utils/axios";
 
 export const Navigator = () => {
-
   const menuMap: { [key: string]: any } = {
     Pod: <Pod />,
     Deployment: <Deployment />,
@@ -34,7 +35,13 @@ export const Navigator = () => {
         setUserName(data.name);
       });
   }, []);
- 
+
+  const signOut = ()=> {
+    axiosInstance.get(LOGOUT).then(() => { 
+        window.location.reload();   
+    })
+  }
+  
 
   return (
     <div>
@@ -75,9 +82,11 @@ export const Navigator = () => {
                   Docker
                 </a>
               </li>
-            <li>
-               <span className="text-green-800" >{userName}</span> 
-              </li>  
+              <li>
+                <Dropdown label={userName} inline size="sm">
+                  <Dropdown.Item onClick={signOut} >Sign out</Dropdown.Item>
+                </Dropdown>
+              </li>
             </ul>
           </div>
         </div>

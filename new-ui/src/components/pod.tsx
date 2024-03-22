@@ -7,7 +7,10 @@ import { Button } from "flowbite-react";
 export function Pod() {
   const [renderData, setRenderData] = useState<any[][]>([]);
   const dataFetch = async () => {
-    await authVerify();
+    const response = await authVerify();
+    if (response == "error") {
+      return;
+    }
     axiosInstance
       .get(POD, {
         data: {},
