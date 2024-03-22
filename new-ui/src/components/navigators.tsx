@@ -1,15 +1,17 @@
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import { Service } from "./service";
 import { Pod } from "./pod";
 import { Configmap } from "./configmap";
 import { Deployment } from "./deployment";
 import { Ingress } from "./ingress";
 import { Resource } from "./resource";
-import { LOCALSHELL, LOGOUT, USERINFO } from "../utils/endpoints";
+import { LOCALSHELL, LOGOUT } from "../utils/endpoints";
 import { Dropdown } from "flowbite-react";
 import { axiosInstance } from "../utils/axios";
-
-export const Navigator = () => {
+import { useUserStore } from "../react-context/userNameContext";
+import { UserInfoModal } from "./modal/userInfoModal";
+export const Navigator = () => {  
+  const user = useUserStore(state=>state.user);
   const menuMap: { [key: string]: any } = {
     Pod: <Pod />,
     Deployment: <Deployment />,
@@ -21,30 +23,26 @@ export const Navigator = () => {
 
   const [currentComponent, setCurrentComponent] = useState("Resource");
   const [currentKey, setCurrentKey] = useState("Resource");
-  const [userName, setUserName] = useState("User");
+  const [userInfoModal, setUserInfoModal] = useState(false);
 
   const renderComponent = () => {
     return menuMap[currentComponent];
   };
-
-  useEffect(() => {
-    fetch(USERINFO)
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-        setUserName(data.name);
-      });
-  }, []);
 
   const signOut = ()=> {
     axiosInstance.get(LOGOUT).then(() => { 
         window.location.reload();   
     })
   }
+
+  const userInfo = ()=> {
+    setUserInfoModal(true);
+  }
   
 
   return (
     <div>
+      <UserInfoModal show={userInfoModal} setShow={()=>{setUserInfoModal(false)}} />
       <nav className="bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700">
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
           <a className="flex items-center space-x-3 rtl:space-x-reverse">
@@ -83,7 +81,8 @@ export const Navigator = () => {
                 </a>
               </li>
               <li>
-                <Dropdown label={userName} inline size="sm">
+                <Dropdown label={user?.name} inline size="sm">
+                  <Dropdown.Item onClick={userInfo} >Settings</Dropdown.Item>
                   <Dropdown.Item onClick={signOut} >Sign out</Dropdown.Item>
                 </Dropdown>
               </li>

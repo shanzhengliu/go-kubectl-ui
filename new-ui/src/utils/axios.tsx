@@ -1,6 +1,8 @@
 import axios from "axios";
 import Swal from 'sweetalert2'
 import { OKTA, USERINFO } from "./endpoints";
+import { useContext } from "react";
+import {  useUserStore } from "../react-context/userNameContext";
 export const axiosInstance = axios.create(
     {
         timeout: 3500
@@ -32,7 +34,8 @@ axiosInstance.interceptors.response.use(
       .get(USERINFO)
       .then(async (response) => {
         if (response.status === 200) {
-          
+          useUserStore.getState().setUser(response.data);
+          // user.setUser(response.data);
           return response.data;
         }
       })
