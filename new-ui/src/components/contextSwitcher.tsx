@@ -71,6 +71,7 @@ export function ContextSwitcher(props: { onSwitch: () => void }) {
         setCurrentNamespace(inputNamespace);
         props.onSwitch();
         setOpenModal(false);
+        window.location.reload();
       });
   };
 

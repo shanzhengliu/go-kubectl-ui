@@ -5,7 +5,7 @@ import { Configmap } from "./configmap";
 import { Deployment } from "./deployment";
 import { Ingress } from "./ingress";
 import { Resource } from "./resource";
-import { LOCALSHELL } from "../utils/endpoints";
+import { LOCALSHELL, USERINFO } from "../utils/endpoints";
 
 export const Navigator = () => {
 
@@ -20,10 +20,20 @@ export const Navigator = () => {
 
   const [currentComponent, setCurrentComponent] = useState("Resource");
   const [currentKey, setCurrentKey] = useState("Resource");
+  const [userName, setUserName] = useState("User");
 
   const renderComponent = () => {
     return menuMap[currentComponent];
   };
+
+  useEffect(() => {
+    fetch(USERINFO)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        setUserName(data.name);
+      });
+  }, []);
  
 
   return (
@@ -65,6 +75,9 @@ export const Navigator = () => {
                   Docker
                 </a>
               </li>
+            <li>
+               <span className="text-green-800" >{userName}</span> 
+              </li>  
             </ul>
           </div>
         </div>

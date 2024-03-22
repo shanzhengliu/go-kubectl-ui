@@ -371,9 +371,7 @@ func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
 		ClientID:    oidcClientId,
 		ExtraScopes: oidcExtraScopes,
 	}
-	fmt.Println(key)
 	filename, _ := ComputeFilename(key)
-	fmt.Println(filename)
 	cacheToken := ctxMap["cacheToken-"+filename]
 	if cacheToken == nil {
 		w.WriteHeader(401)
@@ -382,14 +380,15 @@ func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	accessToken := cacheToken.(CacheToken).AccessToken
 	userInfo, err := conf.Client(context.Background(), &oauth2.Token{AccessToken: accessToken}).Get(oidcIssuerUrl + "/v1/userinfo")
-	if err != nil {
-
+	if err != nil || userInfo.StatusCode != 200 {
 		w.WriteHeader(401)
 		w.Write([]byte("need to login"))
+		return
 	}
 	defer userInfo.Body.Close()
 	var result map[string]interface{}
 	json.NewDecoder(userInfo.Body).Decode(&result)
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
 }
