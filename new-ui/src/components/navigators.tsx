@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Service } from "./service";
 import { Pod } from "./pod";
 import { Configmap } from "./configmap";
@@ -8,7 +8,7 @@ import { Resource } from "./resource";
 import { LOCALSHELL } from "../utils/endpoints";
 
 export const Navigator = () => {
-  
+
   const menuMap: { [key: string]: any } = {
     Pod: <Pod />,
     Deployment: <Deployment />,
@@ -24,6 +24,7 @@ export const Navigator = () => {
   const renderComponent = () => {
     return menuMap[currentComponent];
   };
+ 
 
   return (
     <div>
