@@ -1,9 +1,6 @@
 import {
   Button,
   Checkbox,
-  Label,
-  Modal,
-  Select,
   Table,
   TextInput,
 } from "flowbite-react";
@@ -15,9 +12,7 @@ import {
   ReactNode,
   ReactPortal,
 } from "react";
-import { axiosInstance } from "../utils/axios";
-import { CONTEXT_CHANGE, CONTEXT_LIST, CURRENT_CONTEXT } from "../utils/endpoints";
-import { inputHook } from "../hooks/inputhook";
+
 import { ContextSwitcher } from "./contextSwitcher";
 
 export function DisplayTable(props: {
@@ -27,14 +22,8 @@ export function DisplayTable(props: {
   refresh: () => void;
 }) {
   const [searchValue, setSearchValue] = React.useState("");
-  const [currentContext, setCurrentContext] = React.useState("NA");
-  const [contextSelected, setContextSelected] = React.useState("");
-  const [currentNamespace, setCurrentNamespace] = React.useState("NA");
-  const [inputNamespace, setInputNamespace, onchangeInputNamespace] = inputHook("");
   const [renderData, setRenderData] = React.useState<any[][]>(props.data || []);
   const [originData, setOriginData] = React.useState<any[][]>(props.data || []);
-  const [contextList, setContextList] = React.useState<any[]>([]);
-  const [openModal, setOpenModal] = React.useState(false);
   const onSearchChange = (e: {
     target: { value: React.SetStateAction<string> };
   }) => {
@@ -52,16 +41,6 @@ export function DisplayTable(props: {
     }
   };
 
-  const contextValueChange = (e:any) => {
-    setContextSelected(e.target.value);
-  }
-
-
-  useEffect(() => {
-    if (openModal) {
-    setContextSelected(currentContext);
-    }
-    }, [openModal]);
 
   useEffect(() => {
     if (searchValue === "") {
@@ -87,67 +66,14 @@ export function DisplayTable(props: {
     setOriginData(props.data);
   }, [props.data]);
 
-  useEffect(() => {
-    axiosInstance
-      .get(CURRENT_CONTEXT, {
-        data: {},
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-      .then((response) => {
-        setCurrentContext(response.data.context);
-        setCurrentNamespace(response.data.namespace);
-        setInputNamespace(response.data.namespace);
-      });
-    axiosInstance
-      .get(CONTEXT_LIST, {
-        data: {},
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-      .then((response) => {
-       
-        setContextList(response.data);
-      });
-  }, []);
-
-  const switchContext = () => {
-    axiosInstance
-      .get(CONTEXT_CHANGE+"?context="+contextSelected+"&namespace="+inputNamespace, {
-        data: {},
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-      .then(async () => {
-        setCurrentContext(contextSelected);
-        setCurrentNamespace(inputNamespace);
-        props.refresh();
-        setOpenModal(false);
-      });
-
-   
-  }
+  
 
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center mb-4">
-          <span className="ml-2">namespace:</span>
-          <span className="ml-2 text-green-600"> {currentContext}</span>
-          <span className="ml-2">context:</span>
-          <span className="ml-2 text-blue-600">{currentNamespace}</span>
-          <Button
-            className="ml-2"
-            onClick={() => {
-              setOpenModal(true);
-            }}
-          >
-            Switch
-          </Button>
-        </div>
+        
+        <ContextSwitcher onSwitch={props.refresh} />
+        
         <div className="flex items-center mb-4 ">
           <Button
             className="mr-2"
@@ -212,8 +138,6 @@ export function DisplayTable(props: {
           </Table.Body>
         </Table>
       </div>
-
-      <ContextSwitcher onSwitch={props.refresh} />
     </div>
   );
 }

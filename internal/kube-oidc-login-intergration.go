@@ -77,16 +77,8 @@ func ConfigUserExecArgsMap(args []string, ctxMap map[string]interface{}, mapKey 
 
 func OIDCLoginUrlGenerate(context context.Context, oidcIssuerUrl string, clientId string, redirectUrl string, scopes []string, params Params, currentNonce string, currentState string) string {
 	ctxMap := context.Value("map").(map[string]interface{})
-	conf := &oauth2.Config{
-		ClientID:    clientId,
-		RedirectURL: redirectUrl,
-		Scopes:      scopes,
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  oidcIssuerUrl + "/v1/authorize",
-			TokenURL: oidcIssuerUrl + "/v1/token",
-		},
-	}
-	ctxMap["oidcConfig"] = conf
+	currentContext := ctxMap["environment"].(string)
+	conf := ctxMap["oidcConfig-"+currentContext].(*oauth2.Config)
 	url := conf.AuthCodeURL(currentState, oauth2.AccessTypeOffline, oauth2.SetAuthURLParam("code_challenge", params.CodeChallenge),
 		oauth2.SetAuthURLParam("code_challenge_method", params.CodeChallengeMethod), oauth2.SetAuthURLParam("nonce", currentNonce))
 	return url
@@ -96,9 +88,10 @@ func OIDCLoginUrlGenerate(context context.Context, oidcIssuerUrl string, clientI
 func OktaCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	receivedState := r.URL.Query().Get("state")
+	currentContext := ctxMap["environment"].(string)
 	params := ctxMap["params"].(Params)
-	conf := ctxMap["oidcConfig"].(*oauth2.Config)
-	oidcMap := ctxMap["oidcMap"].(map[string][]string)
+	conf := ctxMap["oidcConfig-"+currentContext].(*oauth2.Config)
+	oidcMap := ctxMap["oidcMap-"+currentContext].(map[string][]string)
 	oidcIssuerUrl := oidcMap["oidc-issuer-url"][0]
 	oidcClientId := oidcMap["oidc-client-id"][0]
 	oidcExtraScopes := oidcMap["oidc-extra-scope"]

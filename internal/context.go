@@ -24,14 +24,13 @@ func ContextChange(ctx context.Context, contextName string, namespace string) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	clientset, err := kubernetes.NewForConfig(restconfig)
-	restclient, err := rest.RESTClientFor(restconfig)
+	clientset, _ := kubernetes.NewForConfig(restconfig)
+	restclient, _ := rest.RESTClientFor(restconfig)
 	ctxMap["clientSet"] = clientset
 	ctxMap["environment"] = contextName
 	ctxMap["namespace"] = namespace
 	ctxMap["restConfig"] = restconfig
 	ctxMap["restClient"] = restclient
-
 }
 
 type KubeContext struct {

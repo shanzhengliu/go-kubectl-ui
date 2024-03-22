@@ -20,6 +20,12 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(error);
     }
   );
+  
+  const sleep = (ms: number) => {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  }
 
   export const  authVerify = async () => {
     return await axiosInstance
@@ -39,8 +45,10 @@ axiosInstance.interceptors.response.use(
         console.log(error);
    
           console.log("Unauthorized");
+          console.log(OKTA);
           const url =  await axios.get(OKTA);
-          window.location.href=url.data;
+          await sleep(3000);
+          window.open(url.data,"_blank");
         
       });
   }

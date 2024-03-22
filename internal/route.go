@@ -47,6 +47,9 @@ func RouteInit(ctx context.Context, path string) {
 	// ctxMap["restClient"] = restClient
 	ctxMap["contextList"] = maps.Keys(KubeconfigList(path))
 	oktaCacheInitFromOS(ctxMap)
+	for _, currentCtx := range ctxMap["contextList"].([]string) {
+		GenerateKubeUserAuthMap(ctx, currentCtx)
+	}
 
 }
 
@@ -328,10 +331,10 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 func OIDCLoginHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
-	isOIDC := GetUserIsOIDC(r.Context())
+	isOIDC := GetUserIsOIDC(r.Context(), ctxMap["environment"].(string))
 
 	if isOIDC {
-		oidcMap := ctxMap["oidcMap"].(map[string][]string)
+		oidcMap := ctxMap["oidcMap-"+ctxMap["environment"].(string)].(map[string][]string)
 		currentState, currentNonce, params := GenerateStateAndNonce()
 		ctxMap["state"] = currentState
 		ctxMap["nonce"] = currentNonce
@@ -350,28 +353,27 @@ func OIDCLoginHandler(w http.ResponseWriter, r *http.Request) {
 
 func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
-	if ctxMap["oidcMap"] == nil {
-		GetUserIsOIDC(r.Context())
 
-	}
-	if ctxMap["oidcMap"] == nil {
-		w.WriteHeader(401)
-		w.Write([]byte("need to login"))
+	if ctxMap["oidcMap-"+ctxMap["environment"].(string)] == nil {
+		w.WriteHeader(200)
+		w.Write([]byte("don't need to login"))
 		return
 	}
-	oidcMap := ctxMap["oidcMap"].(map[string][]string)
+	oidcMap := ctxMap["oidcMap-"+ctxMap["environment"].(string)].(map[string][]string)
 
 	oidcIssuerUrl := oidcMap["oidc-issuer-url"][0]
 	oidcClientId := oidcMap["oidc-client-id"][0]
 	oidcExtraScopes := oidcMap["oidc-extra-scope"]
-	conf := ctxMap["oidcConfig"].(*oauth2.Config)
+	conf := ctxMap["oidcConfig-"+ctxMap["environment"].(string)].(*oauth2.Config)
 
 	key := Key{
 		IssuerURL:   oidcIssuerUrl,
 		ClientID:    oidcClientId,
 		ExtraScopes: oidcExtraScopes,
 	}
+	fmt.Println(key)
 	filename, _ := ComputeFilename(key)
+	fmt.Println(filename)
 	cacheToken := ctxMap["cacheToken-"+filename]
 	if cacheToken == nil {
 		w.WriteHeader(401)
