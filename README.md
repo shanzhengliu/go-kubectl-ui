@@ -42,8 +42,9 @@ but before running, please confirm you have mount all of the resource you need l
 
 
 ## Okta support
-Now this project has create a some adapter code to generate the token, which is the same as kubelogin. it will automatilly load the config and support the feature. therefore, follow the instracution from kubectl login and set up the okta config. pkce support only now. 
+Now this project has created a some adapter code to generate the token, which is the same as kubelogin. it will automatilly load the config and support the feature. therefore, follow the instracution from kubectl login and set up the okta config. pkce support only now. 
 
-## Image Run
+## Docker Run
+You can run the image easily with `docker-compose up -d` after changing the specific place holder in the file
 
 
