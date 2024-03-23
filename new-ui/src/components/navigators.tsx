@@ -81,10 +81,11 @@ export const Navigator = () => {
                 </a>
               </li>
               <li>
+                {user?.name?
                 <Dropdown label={user?.name} inline size="sm">
                   <Dropdown.Item onClick={userInfo} >Settings</Dropdown.Item>
                   <Dropdown.Item onClick={signOut} >Sign out</Dropdown.Item>
-                </Dropdown>
+                </Dropdown>:"User"}
               </li>
             </ul>
           </div>

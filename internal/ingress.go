@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	apiv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -44,4 +45,11 @@ func IngressList(clientset *kubernetes.Clientset, namespace string) []Ingress {
 		ingressList = append(ingressList, *ingress)
 	}
 	return ingressList
+}
+
+func IngressListHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
+	result := IngressList(clientset, ctxMap["namespace"].(string))
+	ReturnTypeHandler(r.Context(), result, w, r)
 }

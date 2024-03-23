@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -60,4 +61,19 @@ func DeploymentToYaml(clientset *kubernetes.Clientset, namespace string, name st
 		fmt.Println(err.Error())
 	}
 	return string(deploymentYaml)
+}
+
+func DeploymentHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
+	result := DeploymentList(clientset, ctxMap["namespace"].(string))
+	ReturnTypeHandler(r.Context(), result, w, r)
+}
+
+func DeploymentYamlHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
+	yaml := DeploymentToYaml(clientset, ctxMap["namespace"].(string), r.URL.Query().Get("deployment"))
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte(yaml))
 }

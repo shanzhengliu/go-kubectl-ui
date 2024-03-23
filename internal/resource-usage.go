@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
 
 	apiv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -66,4 +67,11 @@ func ResourceList(clientset *kubernetes.Clientset, namespace string) []ResourceQ
 	}
 
 	return resourceQuotaListData
+}
+
+func ResourceUseageHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
+	result := ResourceList(clientset, ctxMap["namespace"].(string))
+	ReturnTypeHandler(r.Context(), result, w, r)
 }

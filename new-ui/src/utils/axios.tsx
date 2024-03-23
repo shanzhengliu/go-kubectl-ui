@@ -1,7 +1,6 @@
 import axios from "axios";
 import Swal from 'sweetalert2'
 import { OKTA, USERINFO } from "./endpoints";
-import { useContext } from "react";
 import {  useUserStore } from "../react-context/userNameContext";
 export const axiosInstance = axios.create(
     {
@@ -25,7 +24,7 @@ axiosInstance.interceptors.response.use(
   
   const openOkta = async () => {
     const url = await axios.get(OKTA);
-    window.open(url.data);
+    window.open(url.data, "_self");
   }
 
  

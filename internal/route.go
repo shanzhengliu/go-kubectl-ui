@@ -13,7 +13,6 @@ import (
 	terminal "github.com/maoqide/kubeutil/pkg/terminal"
 	wsterminal "github.com/maoqide/kubeutil/pkg/terminal/websocket"
 	"golang.org/x/exp/maps"
-	"golang.org/x/oauth2"
 	apiv1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -44,7 +43,6 @@ func RouteInit(ctx context.Context, path string) {
 	ctxMap["restConfig"] = config
 	ctxMap["configPath"] = path
 	ctxMap["clientSet"] = clientset
-	// ctxMap["restClient"] = restClient
 	ctxMap["contextList"] = maps.Keys(KubeconfigList(path))
 	oktaCacheInitFromOS(ctxMap)
 	for _, currentCtx := range ctxMap["contextList"].([]string) {
@@ -126,10 +124,6 @@ func RenderResultInit(ctx context.Context, resultList interface{}) *RenderResult
 	return renderResult
 }
 
-func AuthHandler(w http.ResponseWriter, r *http.Request) {
-	TemplateRender(r.Context(), "auth", "", w, r)
-}
-
 func ReturnTypeHandler(context context.Context, resultList interface{}, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
@@ -140,88 +134,6 @@ func ReturnTypeHandler(context context.Context, resultList interface{}, w http.R
 	w.Write(jsonData)
 	return
 
-}
-
-func DeploymentHandler(w http.ResponseWriter, r *http.Request) {
-	ctxMap := r.Context().Value("map").(map[string]interface{})
-	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
-	result := DeploymentList(clientset, ctxMap["namespace"].(string))
-	ReturnTypeHandler(r.Context(), result, w, r)
-}
-
-func ConfigMapListHandler(w http.ResponseWriter, r *http.Request) {
-	ctxMap := r.Context().Value("map").(map[string]interface{})
-	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
-	result := ConfigMapList(clientset, ctxMap["namespace"].(string))
-	ReturnTypeHandler(r.Context(), result, w, r)
-}
-
-func IngressListHandler(w http.ResponseWriter, r *http.Request) {
-	ctxMap := r.Context().Value("map").(map[string]interface{})
-	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
-	result := IngressList(clientset, ctxMap["namespace"].(string))
-	ReturnTypeHandler(r.Context(), result, w, r)
-}
-
-func PodListHandler(w http.ResponseWriter, r *http.Request) {
-	ctxMap := r.Context().Value("map").(map[string]interface{})
-	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
-	result := PodList(clientset, ctxMap["namespace"].(string))
-	ReturnTypeHandler(r.Context(), result, w, r)
-}
-
-func ServiceListHandler(w http.ResponseWriter, r *http.Request) {
-	ctxMap := r.Context().Value("map").(map[string]interface{})
-	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
-	result := ServiceList(clientset, ctxMap["namespace"].(string))
-	ReturnTypeHandler(r.Context(), result, w, r)
-}
-
-func ConfigMapDetailHandler(w http.ResponseWriter, r *http.Request) {
-	ctxMap := r.Context().Value("map").(map[string]interface{})
-	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(ConfigMapDetail(clientset, ctxMap["namespace"].(string), r.URL.Query().Get("configmap")))
-}
-
-func ContextChangeHandler(w http.ResponseWriter, r *http.Request) {
-	ContextChange(r.Context(), r.URL.Query().Get("context"), r.URL.Query().Get("namespace"))
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(nil)
-}
-
-func CurrentContextHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(CurrentContext(r.Context()))
-}
-
-func ContextListHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(ContextList(r.Context()))
-}
-
-func PodLogHandler(w http.ResponseWriter, r *http.Request) {
-	ctxMap := r.Context().Value("map").(map[string]interface{})
-	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
-	log := PodLog(clientset, ctxMap["namespace"].(string), r.URL.Query().Get("pod"), r.URL.Query().Get("container"))
-	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte(log))
-}
-
-func PodtoYamlHandler(w http.ResponseWriter, r *http.Request) {
-	ctxMap := r.Context().Value("map").(map[string]interface{})
-	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
-	yaml := PodtoYaml(clientset, ctxMap["namespace"].(string), r.URL.Query().Get("pod"))
-	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte(yaml))
-}
-
-func DeploymentYamlHandler(w http.ResponseWriter, r *http.Request) {
-	ctxMap := r.Context().Value("map").(map[string]interface{})
-	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
-	yaml := DeploymentToYaml(clientset, ctxMap["namespace"].(string), r.URL.Query().Get("deployment"))
-	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte(yaml))
 }
 
 func WebShellHandler(w http.ResponseWriter, r *http.Request) {
@@ -312,97 +224,7 @@ func PodExec(clientset *kubernetes.Clientset, restconfig *rest.Config, cmd []str
 	return err
 }
 
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	ctxMap := r.Context().Value("map").(map[string]interface{})
-	websitePassword := ctxMap["websitePassword"].(string)
-	if websitePassword == "" {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("true"))
-		return
-	}
-	password := r.URL.Query().Get("password")
-	if websitePassword == password {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("true"))
-	} else {
-		w.WriteHeader(401)
-		w.Write([]byte("false"))
-	}
-}
-
-func ResourceUseageHandler(w http.ResponseWriter, r *http.Request) {
-	ctxMap := r.Context().Value("map").(map[string]interface{})
-	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
-	result := ResourceList(clientset, ctxMap["namespace"].(string))
-	ReturnTypeHandler(r.Context(), result, w, r)
-}
-
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	TemplateRender(r.Context(), "index", "", w, r)
-}
-
-func OIDCLoginHandler(w http.ResponseWriter, r *http.Request) {
-	ctxMap := r.Context().Value("map").(map[string]interface{})
-	isOIDC := GetUserIsOIDC(r.Context(), ctxMap["environment"].(string))
-
-	if isOIDC {
-		oidcMap := ctxMap["oidcMap-"+ctxMap["environment"].(string)].(map[string][]string)
-		currentState, currentNonce, params := GenerateStateAndNonce()
-		ctxMap["state"] = currentState
-		ctxMap["nonce"] = currentNonce
-		ctxMap["params"] = params
-		oidcClientSecret := ""
-		if oidcMap["oidc-client-secret"] != nil {
-			oidcClientSecret = oidcMap["oidc-client-secret"][0]
-		}
-		url := OIDCLoginUrlGenerate(r.Context(), oidcMap["oidc-issuer-url"][0], oidcMap["oidc-client-id"][0], oidcClientSecret, "http://localhost:8000", oidcMap["oidc-extra-scope"], params, currentNonce, currentState)
-		w.WriteHeader(200)
-		//response := map[string]string{"url": url}
-		w.Write([]byte(url))
-
-	} else {
-		w.WriteHeader(201)
-		w.Write([]byte("not oidc"))
-	}
-
-}
-
-func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
-	ctxMap := r.Context().Value("map").(map[string]interface{})
-
-	if ctxMap["oidcMap-"+ctxMap["environment"].(string)] == nil {
-		w.WriteHeader(200)
-		w.Write([]byte("don't need to login"))
-		return
-	}
-	conf := ctxMap["oidcConfig-"+ctxMap["environment"].(string)].(*oauth2.Config)
-	filename := GetCacheFileNameByCtxMap(ctxMap, ctxMap["environment"].(string))
-	cacheToken := ctxMap["cacheToken-"+filename]
-	if cacheToken == nil {
-		w.WriteHeader(401)
-		w.Write([]byte("need to login, cacheToken is nil"))
-		return
-	}
-	oidcIssuerUrl := ctxMap["oidcMap-"+ctxMap["environment"].(string)].(map[string][]string)["oidc-issuer-url"][0]
-	accessToken := cacheToken.(CacheToken).AccessToken
-	userInfo, err := conf.Client(context.Background(), &oauth2.Token{AccessToken: accessToken}).Get(oidcIssuerUrl + "/v1/userinfo")
-	if err != nil || userInfo.StatusCode != 200 {
-		w.WriteHeader(401)
-		w.Write([]byte("need to login"))
-		return
-	}
-	defer userInfo.Body.Close()
-	var result map[string]interface{}
-	json.NewDecoder(userInfo.Body).Decode(&result)
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
-}
-
-func OIDCLogoutHandler(w http.ResponseWriter, r *http.Request) {
-	ctxMap := r.Context().Value("map").(map[string]interface{})
-	OktaLogout(r.Context(), ctxMap["environment"].(string))
-	w.WriteHeader(200)
-	w.Write([]byte("logout"))
 }

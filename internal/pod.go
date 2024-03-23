@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/http"
 
 	v1 "k8s.io/api/core/v1"
 	apiv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -108,4 +109,27 @@ func calculateRunningState(state v1.ContainerState) string {
 		return "Waiting"
 	}
 	return "Unknown"
+}
+
+func PodListHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
+	result := PodList(clientset, ctxMap["namespace"].(string))
+	ReturnTypeHandler(r.Context(), result, w, r)
+}
+
+func PodLogHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
+	log := PodLog(clientset, ctxMap["namespace"].(string), r.URL.Query().Get("pod"), r.URL.Query().Get("container"))
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte(log))
+}
+
+func PodtoYamlHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
+	yaml := PodtoYaml(clientset, ctxMap["namespace"].(string), r.URL.Query().Get("pod"))
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte(yaml))
 }

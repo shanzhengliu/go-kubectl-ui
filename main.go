@@ -49,14 +49,12 @@ func main() {
 	var namespace string
 	var port string
 	var path string
-	var websitePassword string
 	var kubeDefaultPath string
 
 	flag.StringVar(&config, "config", "", "config context: eg: minikube")
 	flag.StringVar(&namespace, "namespace", "default", "namespace: eg: namespate")
 	flag.StringVar(&port, "port", "8080", "port: eg: 8080")
 	flag.StringVar(&path, "path", "NONE", "path: eg: /root/.kube/config")
-	flag.StringVar(&websitePassword, "websitePassword", "", "password: eg: 123456")
 	flag.StringVar(&kubeDefaultPath, "kubeDefaultPath", "/root/.kube", "kubeDefaultPath: eg: /root/.kube")
 
 	flag.Parse()
@@ -76,9 +74,6 @@ func main() {
 	if os.Getenv("KUBE_CONFIG_PATH") != "" {
 		path = os.Getenv("KUBE_CONFIG_PATH")
 	}
-	if os.Getenv("KUBE_WEBSITE_PASSWORD") != "" {
-		websitePassword = os.Getenv("KUBE_WEBSITE_PASSWORD")
-	}
 	if os.Getenv("KUBE_DEFAULT_PATH") != "" {
 		kubeDefaultPath = os.Getenv("KUBE_DEFAULT_PATH")
 	}
@@ -95,7 +90,6 @@ func main() {
 	ctxMap["environment"] = config
 	ctxMap["static"] = frontend
 	ctxMap["namespace"] = namespace
-	ctxMap["websitePassword"] = websitePassword
 	ctxMap["kubeDefaultPath"] = kubeDefaultPath
 	ctxMap["applicationPort"] = port
 	if path == "NONE" {
@@ -142,8 +136,6 @@ func main() {
 	router.PathPrefix("/xterm/").Handler(http.FileServer(http.FS(subFs)))
 	router.PathPrefix("/js/").Handler(http.FileServer(http.FS(subFs)))
 	router.HandleFunc("/", Chain(internal.HomeHandler, ContextAdd(ctx)))
-	router.HandleFunc("/auth", Chain(internal.AuthHandler, ContextAdd(ctx)))
-	router.HandleFunc("/api/login", Chain(internal.LoginHandler, ContextAdd(ctx)))
 	router.HandleFunc("/deployment", Chain(internal.DeploymentHandler, ContextAdd(ctx)))
 	router.HandleFunc("/configmap", Chain(internal.ConfigMapListHandler, ContextAdd(ctx)))
 	router.HandleFunc("/ingress", Chain(internal.IngressListHandler, ContextAdd(ctx)))
@@ -162,7 +154,7 @@ func main() {
 	router.HandleFunc("/localshell", Chain(internal.LocalShellHandler, ContextAdd(ctx)))
 	router.HandleFunc("/ws/webshell", Chain(internal.ServeWsTerminalHandler, ContextAdd(ctx)))
 	router.HandleFunc("/ws/localshell", Chain(func(w http.ResponseWriter, r *http.Request) { m.HandleRequest(w, r) }, ContextAdd(ctx)))
-	router.HandleFunc("/api/okta", Chain(internal.OIDCLoginHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/oidc-login", Chain(internal.OIDCLoginHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/userinfo", Chain(internal.UserInfoHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/oidc-logout", Chain(internal.OIDCLogoutHandler, ContextAdd(ctx)))
 

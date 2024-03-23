@@ -2,7 +2,9 @@ package internal
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -52,8 +54,24 @@ func ContextList(ctx context.Context) []string {
 	return ctxMap["contextList"].([]string)
 }
 
+func ContextListHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(ContextList(r.Context()))
+}
+
 func GetCurrentContextFromKubeCmd() string {
 	kubeconfig := clientcmd.NewDefaultClientConfigLoadingRules().GetDefaultFilename()
 	config, _ := clientcmd.LoadFromFile(kubeconfig)
 	return config.CurrentContext
+}
+
+func ContextChangeHandler(w http.ResponseWriter, r *http.Request) {
+	ContextChange(r.Context(), r.URL.Query().Get("context"), r.URL.Query().Get("namespace"))
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(nil)
+}
+
+func CurrentContextHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(CurrentContext(r.Context()))
 }

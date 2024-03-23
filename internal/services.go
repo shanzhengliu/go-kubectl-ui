@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -35,4 +36,11 @@ func ServiceList(clientset *kubernetes.Clientset, namespace string) []Service {
 		serviceList = append(serviceList, *service)
 	}
 	return serviceList
+}
+
+func ServiceListHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
+	result := ServiceList(clientset, ctxMap["namespace"].(string))
+	ReturnTypeHandler(r.Context(), result, w, r)
 }
