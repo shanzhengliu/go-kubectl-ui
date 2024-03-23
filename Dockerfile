@@ -49,7 +49,7 @@ WORKDIR /app
 
 COPY --from=BuildStage app/ app/
 
-COPY config /root/kube/.config
+COPY config /root/.kube/config
 
 COPY --from=ENVStage /usr/local/bin/kubectl  /usr/local/bin/kubectl
 
