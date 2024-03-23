@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { authVerify, axiosInstance } from "../utils/axios";
-import { DEPLOYMENT, DEPLOYMENTYAML } from "../utils/endpoints";
+import { authVerify, axiosInstance } from "../../utils/axios";
+import { DEPLOYMENT, DEPLOYMENTYAML } from "../../utils/endpoints";
 import { DisplayTable } from "./displayTable";
 import { Button } from "flowbite-react";
 

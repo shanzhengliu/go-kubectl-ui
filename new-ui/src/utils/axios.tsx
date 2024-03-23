@@ -1,7 +1,7 @@
 import axios from "axios";
 import Swal from 'sweetalert2'
 import { OKTA, USERINFO } from "./endpoints";
-import {  useUserStore } from "../react-context/userNameContext";
+import {  useUserStore } from "../react-context/shareContext";
 export const axiosInstance = axios.create(
     {
         timeout: 3500

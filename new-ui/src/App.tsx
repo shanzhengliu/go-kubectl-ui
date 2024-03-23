@@ -1,14 +1,11 @@
 import "./App.css";
-
-import {  Navigator } from "./components/navigators";
+import { MainView } from "./components/mainView";
 
 function App() {
   return (
-
       <div>
-        <Navigator />
+        <MainView />
       </div>
-
   );
 }
 

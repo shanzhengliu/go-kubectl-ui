@@ -1,7 +1,7 @@
 import { Button, Label, Modal, Select, TextInput } from "flowbite-react";
 import { useEffect, useState } from "react";
-import { axiosInstance } from "../utils/axios";
-import { CONTEXT_CHANGE, CONTEXT_LIST, CURRENT_CONTEXT } from "../utils/endpoints";
+import { axiosInstance } from "../../utils/axios";
+import { CONTEXT_CHANGE, CONTEXT_LIST, CURRENT_CONTEXT } from "../../utils/endpoints";
 
 export function ContextSwitcher(props: { onSwitch: () => void }) {
   const [currentContext, setCurrentContext] = useState("NA");

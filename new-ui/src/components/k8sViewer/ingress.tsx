@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { authVerify, axiosInstance } from "../utils/axios";
-import { INGRESS } from "../utils/endpoints";
+import { authVerify, axiosInstance } from "../../utils/axios";
+import { INGRESS } from "../../utils/endpoints";
 import { DisplayTable } from "./displayTable";
 
 export function Ingress() {

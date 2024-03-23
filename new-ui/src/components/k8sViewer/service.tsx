@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { DisplayTable } from "./displayTable";
-import { authVerify, axiosInstance } from "../utils/axios";
-import { SERVICE } from "../utils/endpoints";
+import { authVerify, axiosInstance } from "../../utils/axios";
+import { SERVICE } from "../../utils/endpoints";
 
 export function Service() {
   const [renderData, setRenderData] = useState<any[][]>([]);

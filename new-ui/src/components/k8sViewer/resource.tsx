@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { authVerify, axiosInstance } from "../utils/axios";
-import { RESOURCE } from "../utils/endpoints";
+import { authVerify, axiosInstance } from "../../utils/axios";
+import { RESOURCE } from "../../utils/endpoints";
 import ReactECharts from "echarts-for-react";
-import { colors } from "../utils/constant";
+import { colors } from "../../utils/constant";
 
 import { ContextSwitcher } from "./contextSwitcher";
 import { Button } from "flowbite-react";

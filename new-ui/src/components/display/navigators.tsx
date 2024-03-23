@@ -5,11 +5,11 @@ import { Configmap } from "./configmap";
 import { Deployment } from "./deployment";
 import { Ingress } from "./ingress";
 import { Resource } from "./resource";
-import { LOCALSHELL, LOGOUT } from "../utils/endpoints";
+import { LOCALSHELL, LOGOUT } from "../../utils/endpoints";
 import { Dropdown } from "flowbite-react";
-import { axiosInstance } from "../utils/axios";
-import { useUserStore } from "../react-context/userNameContext";
-import { UserInfoModal } from "./modal/userInfoModal";
+import { axiosInstance } from "../../utils/axios";
+import { useUserStore } from "../../react-context/shareContext";
+import { UserInfoModal } from "../k8sViewer/userInfoModal";
 export const Navigator = () => {  
   const user = useUserStore(state=>state.user);
   const menuMap: { [key: string]: any } = {
