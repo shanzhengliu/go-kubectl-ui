@@ -159,7 +159,7 @@ func main() {
 	router.HandleFunc("/api/oidc-logout", Chain(internal.OIDCLogoutHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/proxy", Chain(internal.ProxyHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/stop-port-forward", Chain(internal.StopPortForward, ContextAdd(ctx)))
-	router.HandleFunc("/api/service-forward", Chain(internal.ServiceForwardHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/start-port-forward", Chain(internal.ServiceForwardHandler, ContextAdd(ctx)))
 
 	cor := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},

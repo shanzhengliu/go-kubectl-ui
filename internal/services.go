@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os/exec"
+	"strings"
 	"sync"
 	"syscall"
 
@@ -26,8 +27,9 @@ var (
 	mu sync.Mutex
 )
 
-func ServiceList(clientset *kubernetes.Clientset, namespace string) []Service {
+func ServiceList(ctxMap map[string]interface{}, clientset *kubernetes.Clientset, namespace string) []Service {
 	servicesClient := clientset.CoreV1().Services(namespace)
+	currentContext := ctxMap["environment"].(string)
 	service, error := servicesClient.List(context.TODO(), v1.ListOptions{})
 	if error != nil {
 		fmt.Println(error.Error())
@@ -37,11 +39,26 @@ func ServiceList(clientset *kubernetes.Clientset, namespace string) []Service {
 
 	for _, item := range service.Items {
 		selectorString := MapToString(item.Spec.Selector)
+		localPort := ""
+		servicePort := ""
+		isForward := false
+		for key := range ctxMap {
+			if strings.Contains(key, fmt.Sprintf("service#forward#%s#%s#%s", currentContext, namespace, item.Name)) {
+				fmt.Println(key)
+				localPort = strings.Split(key, "#")[5]
+				servicePort = strings.Split(key, "#")[6]
+				isForward = true
+				continue
+			}
+		}
 		service := &Service{
-			Name:      item.Name,
-			Namespace: item.Namespace,
-			Type:      string(item.Spec.Type),
-			Selector:  selectorString,
+			Name:        item.Name,
+			Namespace:   item.Namespace,
+			Type:        string(item.Spec.Type),
+			Selector:    selectorString,
+			IsForward:   isForward,
+			LocalPort:   localPort,
+			ServicePort: servicePort,
 		}
 		serviceList = append(serviceList, *service)
 	}
@@ -51,7 +68,7 @@ func ServiceList(clientset *kubernetes.Clientset, namespace string) []Service {
 func ServiceListHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
-	result := ServiceList(clientset, ctxMap["namespace"].(string))
+	result := ServiceList(ctxMap, clientset, ctxMap["namespace"].(string))
 	ReturnTypeHandler(r.Context(), result, w, r)
 }
 
@@ -63,7 +80,8 @@ func ServiceForwardHandler(w http.ResponseWriter, r *http.Request) {
 	serviceName := r.URL.Query().Get("service")
 	servicePort := r.URL.Query().Get("servicePort")
 	localPort := r.URL.Query().Get("localPort")
-	key := fmt.Sprintf("service-forward-%s-%s-%s-%s", currentContext, namespace, serviceName, localPort)
+
+	key := fmt.Sprintf("service#forward#%s#%s#%s#%s#%s", currentContext, namespace, serviceName, localPort, servicePort)
 	if ctxMap[key] != nil {
 		http.Error(w, "Port-forward process already exists for given service", http.StatusBadRequest)
 		return
@@ -92,13 +110,13 @@ func StopPortForward(w http.ResponseWriter, r *http.Request) {
 	namespace := r.URL.Query().Get("namespace")
 	serviceName := r.URL.Query().Get("service")
 	localPort := r.URL.Query().Get("localPort")
-
-	if namespace == "" || serviceName == "" || localPort == "" {
-		http.Error(w, "Namespace, serviceName and localPort query parameters are required", http.StatusBadRequest)
+	servicePort := r.URL.Query().Get("servicePort")
+	if namespace == "" || serviceName == "" || localPort == "" || servicePort == "" {
+		http.Error(w, "Namespace, serviceName, localPort, servicePort query parameters are required", http.StatusBadRequest)
 		return
 	}
 
-	key := fmt.Sprintf("service-forward-%s-%s-%s-%s", currentContext, namespace, serviceName, localPort)
+	key := fmt.Sprintf("service#forward#%s#%s#%s#%s#%s", currentContext, namespace, serviceName, localPort, servicePort)
 
 	mu.Lock()
 	pid, exists := ctxMap[key]
