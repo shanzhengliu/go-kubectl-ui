@@ -4,6 +4,7 @@ import { Tabs } from "flowbite-react";
 import { inputHook } from "../../hooks/inputhook";
 import { PROXY } from "../../utils/endpoints";
 import { useState } from "react";
+import { html as beautifyHtml } from 'js-beautify';
 
 type Header = {
   key: string;
@@ -86,7 +87,7 @@ export const HttpHelper = () => {
       body: bodyGenerate(),
     };
     axios.post(PROXY, options).then((response) => {
-      setResponseData(JSON.stringify(response.data, null, 2));
+      setResponseData(  beautifyHtml(JSON.stringify(response.data, null, 2)));
       setResponseStatus(response.status + " " + response.statusText);
       setResponseHeader(responseHeaderGenerate(response.headers)); 
     }).catch((error) => {
