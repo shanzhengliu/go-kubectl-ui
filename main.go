@@ -157,6 +157,7 @@ func main() {
 	router.HandleFunc("/api/oidc-login", Chain(internal.OIDCLoginHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/userinfo", Chain(internal.UserInfoHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/oidc-logout", Chain(internal.OIDCLogoutHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/proxy", Chain(internal.ProxyHandler, ContextAdd(ctx)))
 
 	cor := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},

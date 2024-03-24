@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { DisplayTable } from "./displayTable";
-import { authVerify, axiosInstance } from "../utils/axios";
-import { CONFIGMAP, CONFIGMAP_DETAIL } from "../utils/endpoints";
+import { authVerify, axiosInstance } from "../../utils/axios";
+import { CONFIGMAP, CONFIGMAP_DETAIL } from "../../utils/endpoints";
 import { Button, Modal } from "flowbite-react";
 import hljs from "highlight.js";
 export function Configmap() {

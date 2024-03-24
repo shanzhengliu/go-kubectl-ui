@@ -1,5 +1,5 @@
 import { Button, Label, Modal, TextInput } from "flowbite-react";
-import { useUserStore } from "../../react-context/userNameContext";
+import { useUserStore } from "../../react-context/shareContext";
 
 export const UserInfoModal = (props: {
   show: boolean;

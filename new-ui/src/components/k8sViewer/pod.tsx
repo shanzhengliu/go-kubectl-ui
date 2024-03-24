@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { DisplayTable } from "./displayTable";
-import { authVerify, axiosInstance } from "../utils/axios";
+import { authVerify, axiosInstance } from "../../utils/axios";
 import Swal from "sweetalert2";
-import { POD, PODLOGS, PODYAML, WEBSHELL } from "../utils/endpoints";
+import { POD, PODLOGS, PODYAML, WEBSHELL } from "../../utils/endpoints";
 import { Button } from "flowbite-react";
 export function Pod() {
   const [renderData, setRenderData] = useState<any[][]>([]);
@@ -53,6 +53,7 @@ export function Pod() {
   return (
     <div>
       <DisplayTable
+        
         data={renderData}
         refresh={dataFetch}
         header={[
