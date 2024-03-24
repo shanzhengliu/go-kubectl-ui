@@ -1,10 +1,12 @@
 package internal
 
 import (
+	"bytes"
 	"context"
 	"embed"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -227,4 +229,51 @@ func PodExec(clientset *kubernetes.Clientset, restconfig *rest.Config, cmd []str
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	TemplateRender(r.Context(), "index", "", w, r)
+}
+
+type ProxyRequest struct {
+	URL     string            `json:"url"`
+	Method  string            `json:"method"`
+	Headers map[string]string `json:"headers"`
+	Body    json.RawMessage   `json:"body"`
+}
+
+func ProxyHandler(w http.ResponseWriter, r *http.Request) {
+	var reqData ProxyRequest
+
+	err := json.NewDecoder(r.Body).Decode(&reqData)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	clientReq, err := http.NewRequest(reqData.Method, reqData.URL, bytes.NewReader(reqData.Body))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	for key, value := range reqData.Headers {
+		clientReq.Header.Set(key, value)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(clientReq)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	for key, value := range resp.Header {
+		w.Header().Set(key, value[0])
+	}
+	w.WriteHeader(resp.StatusCode)
+	w.Write(respBody)
 }
