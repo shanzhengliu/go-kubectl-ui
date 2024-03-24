@@ -13,8 +13,8 @@ More details: https://kubernetes.io/docs/home/
 2: Context && Namespace switch via Web UI  
 3: View Configmap Data  
 4: View Pod Container Log  
-5: Webshell for docker image you are running which contains "kubectl, Kube oidc-login, helm"
-6: Webshell connection for container in the pod
+5: Webshell for docker image you are running which contains "kubectl, Kube oidc-login, helm"  
+6: Webshell connection for container in the pod  
 7: OKTA adapter for UI, if you have set up okta in your config, you should set the callback url as http://localhost:8000/ in your okta admin account
 
 
