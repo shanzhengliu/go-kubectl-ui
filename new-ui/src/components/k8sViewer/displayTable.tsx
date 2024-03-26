@@ -59,7 +59,7 @@ export function DisplayTable(props: {
       });
       setRenderData(result);
     }
-  }, [searchValue]);
+  }, [searchValue, renderData]);
 
   useEffect(() => {
     setRenderData(props.data);

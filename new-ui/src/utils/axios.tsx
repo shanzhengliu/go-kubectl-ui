@@ -4,7 +4,7 @@ import { OKTA, USERINFO } from "./endpoints";
 import {  useUserStore } from "../react-context/shareContext";
 export const axiosInstance = axios.create(
     {
-        timeout: 3500
+        timeout: 10000
     }
 );
 axiosInstance.interceptors.response.use(

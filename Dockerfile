@@ -1,10 +1,9 @@
 ##frontend build
-FROM  --platform=$BUILDPLATFORM node:20-slim AS NodeBuild
+FROM  --platform=$BUILDPLATFORM oven/bun:latest AS NodeBuild
 WORKDIR /app
 COPY ./new-ui/ /app
-RUN npm install -g pnpm
-RUN pnpm install
-RUN pnpm build
+RUN bun install
+RUN bun run build
 ##node build end
 
 
