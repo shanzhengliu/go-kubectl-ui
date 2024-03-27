@@ -154,6 +154,8 @@ func main() {
 	router.HandleFunc("/localshell", Chain(internal.LocalShellHandler, ContextAdd(ctx)))
 	router.HandleFunc("/ws/webshell", Chain(internal.ServeWsTerminalHandler, ContextAdd(ctx)))
 	router.HandleFunc("/ws/localshell", Chain(func(w http.ResponseWriter, r *http.Request) { m.HandleRequest(w, r) }, ContextAdd(ctx)))
+	router.HandleFunc("/ws/dylog", Chain(internal.DyPodLogWSHandler, ContextAdd(ctx)))
+	router.HandleFunc("/dypodlog", Chain(internal.DyPodLogTemplateHander, ContextAdd(ctx)))
 	router.HandleFunc("/api/oidc-login", Chain(internal.OIDCLoginHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/userinfo", Chain(internal.UserInfoHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/oidc-logout", Chain(internal.OIDCLogoutHandler, ContextAdd(ctx)))

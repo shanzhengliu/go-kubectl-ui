@@ -92,7 +92,7 @@ export function DisplayTable(props: {
           />
         </div>
       </div>
-      <div className="overflow-x-auto max-w-[calc(100vw-3rem)]">
+      <div className="w-[calc(100vw-4rem)]">
         <Table hoverable>
           <Table.Head>
             {props.checkbox ? (

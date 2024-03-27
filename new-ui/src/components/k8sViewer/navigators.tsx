@@ -91,7 +91,7 @@ export const Navigator = () => {
             </div>
           </div>
         </nav>
-        <div className="flex-grow">
+        <div className="flex-grow w-[calc(100vw-4rem)">
         {renderComponent()}
         </div>
       </div>

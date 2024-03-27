@@ -1,11 +1,14 @@
 package internal
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
+	"github.com/gorilla/websocket"
 	v1 "k8s.io/api/core/v1"
 	apiv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -126,10 +129,54 @@ func PodLogHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(log))
 }
 
+func DyPodLogWSHandler(w http.ResponseWriter, r *http.Request) {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
+	serveDyLogsWs(w, r, ctxMap["namespace"].(string), r.URL.Query().Get("pod"), r.URL.Query().Get("container"), clientset)
+}
+
 func PodtoYamlHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
 	yaml := PodtoYaml(clientset, ctxMap["namespace"].(string), r.URL.Query().Get("pod"))
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write([]byte(yaml))
+}
+
+func serveDyLogsWs(w http.ResponseWriter, r *http.Request, namespace string, name string, container string, clientset *kubernetes.Clientset) {
+	var upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
+
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer conn.Close()
+
+	podClient := clientset.CoreV1().Pods(namespace)
+	stream, err := podClient.GetLogs(name, &v1.PodLogOptions{Container: container, Follow: true, TailLines: func(i int64) *int64 { return &i }(10)}).Stream(context.TODO())
+
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer stream.Close()
+
+	reader := bufio.NewReader(stream)
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			break
+		}
+
+		err = conn.WriteMessage(websocket.TextMessage, []byte(line))
+		if err != nil {
+			log.Println("write:", err)
+			break
+		}
+	}
 }

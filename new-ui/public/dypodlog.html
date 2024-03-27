@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        #logs {
+            height: 100vh; 
+            overflow-y: scroll;
+            border: 0px solid #ccc;
+        }
+    </style>
+<body>
+<div id="logs"></div>
+<script type="text/javascript">
+    function getQueryVariable(variable) {
+	let query = window.location.search.substring(1);
+	let vars = query.split("&");
+	for (let i=0;i<vars.length;i++) {
+			let pair = vars[i].split("=");
+			if(pair[0] == variable){
+				return pair[1];
+			}
+	}
+	return(false);
+    }
+    pod=getQueryVariable("pod")
+	container=getQueryVariable("container")
+    var conn = new WebSocket('ws://'+document.location.host+'/ws/dylog?pod='+pod+'&container='+container);
+
+    conn.onmessage = function(e) {
+        console.log(e.data);
+        var logElement = document.getElementById("logs");
+        logElement.innerHTML += e.data + "<br>";
+        logElement.scrollTop = logElement.scrollHeight; 
+    };
+</script>
+</body>
+</html>

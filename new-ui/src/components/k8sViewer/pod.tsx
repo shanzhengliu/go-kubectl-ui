@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { DisplayTable } from "./displayTable";
 import { authVerify, axiosInstance } from "../../utils/axios";
 import Swal from "sweetalert2";
-import { POD, PODLOGS, PODYAML, WEBSHELL } from "../../utils/endpoints";
+import { POD, PODLOGS, PODYAML, ROLLING_LOG, WEBSHELL } from "../../utils/endpoints";
 import { Button } from "flowbite-react";
 export function Pod() {
   const [renderData, setRenderData] = useState<any[][]>([]);
@@ -41,6 +41,10 @@ export function Pod() {
                 pod={response.data[i].name}
                 container={response.data[i].images[j].containerName}
               />,
+              <RollingLog
+                pod={response.data[i].name}
+                container={response.data[i].images[j].containerName}
+              />,
             ]);
           }
         }
@@ -67,6 +71,7 @@ export function Pod() {
           "",
           "",
           "",
+          ""
         ]}
       />
     </div>
@@ -110,6 +115,21 @@ function WebShell(props: { pod: string; container: string }) {
           target="_blank"
         >
           Shell
+        </a>
+      </Button>
+    </div>
+  );
+}
+
+function RollingLog(props: { pod: string; container: string }) {
+  return (
+    <div>
+      <Button gradientMonochrome="lime">
+        <a
+          href={`${ROLLING_LOG}?pod=${props.pod}&container=${props.container}`}
+          target="_blank"
+        >
+          Rolling Log
         </a>
       </Button>
     </div>

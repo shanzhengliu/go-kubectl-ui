@@ -18,7 +18,7 @@ return (
     <div className="w-12 h-full" style={{ position: 'fixed' }}>
       <LeftSideBar show={show} setShow={setShow} />
     </div>
-    <div className="flex-grow max-w-[calc(100vw-3rem)] min-w-0 ml-[3rem]">
+    <div className="flex-grow w-[calc(100vw-3rem)] min-w-0 ml-[3rem]">
       {letSideMap[show] || <div></div>}
     </div>
   </div>

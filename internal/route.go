@@ -148,6 +148,11 @@ func LocalShellHandler(w http.ResponseWriter, r *http.Request) {
 	TemplateRender(r.Context(), "localshell", "", w, r)
 }
 
+func DyPodLogTemplateHander(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	TemplateRender(r.Context(), "dypodlog", "", w, r)
+}
+
 func ServeWsTerminalHandler(w http.ResponseWriter, r *http.Request) {
 	cmd := []string{"sh"}
 	ctxMap := r.Context().Value("map").(map[string]interface{})
