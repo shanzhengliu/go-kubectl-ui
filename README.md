@@ -62,7 +62,7 @@ Deployment Function (can forward service in K8S to localhost, local port range c
 Http Helper (light weight http request tool)
 ![screenshot](./screenshot/http%20helper.png)
 
-Docker Shell (talk to the container running this web app, you can use "kubectl" , "helm" command. it means you don't need to install kubectl in your local)
+Docker Shell (talk to the container running this web app, you can use "kubectl" , "helm" command. it means you don't need to install kubectl in your local machine)
 ![screenshot](./screenshot/docker%20shell.png)
 
 
