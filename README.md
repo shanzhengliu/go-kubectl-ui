@@ -42,9 +42,27 @@ but before running, please confirm you have mount all of the resource you need l
 
 
 ## Okta support
-Now this project has created a some adapter code to generate the token, which is the same as kubelogin. it will automatilly load the config and support the feature. therefore, follow the instracution from kubectl login and set up the okta config. pkce support only now. 
+Now this project has created a some adapter code to generate the token, which is the same as kube oidc-login. it will automatilly load the config and support the feature. therefore, follow the instracution from kubectl login and set up the okta config. pkce support only now. 
 
 ## Docker Run
 You can run the image easily with `docker-compose up -d` after changing the specific place holder in the file
+
+
+## Screenshot
+Pod Function (shell to connect to the pod container, rolling logs, yaml file, rolling logs are support also)
+![screenshot](./screenshot/pod.png)
+
+
+Deployment Function
+![screenshot](./screenshot/deployment.png)
+
+Deployment Function (can forward service in K8S to localhost, local port range could be 7000-7100 if you start application via docker compose)
+![screenshot](./screenshot/service.png)
+
+Http Helper (light weight http request tool)
+![screenshot](./screenshot/http%20helper.png)
+
+Docker Shell (talk to the container running this web app, you can use "kubectl" , "helm" command. it means you don't need to install kubectl in your local)
+![screenshot](./screenshot/docker%20shell.png)
 
 
