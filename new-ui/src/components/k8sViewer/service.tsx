@@ -24,7 +24,7 @@ export function Service() {
       response[i].selector,
       <TextInput  readOnly={response[i].isForward?true:false}  value={localPorts[i]} onChange={(e)=> handleLocalPortChange(i, e.target.value)}    /> ,
       <TextInput  readOnly={response[i].isForward?true:false}  value={servicePorts[i]} onChange={(e)=> handleServicePortChange(i, e.target.value)} /> ,
-      response[i].isForward?<Button color={"danger"} onClick={()=>stopForward(i,response[i].namespace,response[i].name)} >Stop</Button>:<Button color={"success"}  onClick={()=>startForward(i,response[i].namespace,response[i].name)} >Start</Button>,
+      response[i].isForward?<Button color={"failure"} onClick={()=>stopForward(i,response[i].namespace,response[i].name)} >Stop</Button>:<Button color={"success"}  onClick={()=>startForward(i,response[i].namespace,response[i].name)} >Start</Button>,
     ]);
   }
   setRenderData(responseData);

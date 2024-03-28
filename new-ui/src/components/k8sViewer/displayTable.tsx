@@ -1,10 +1,6 @@
-import {
-  Button,
-  Checkbox,
-  Table,
-  TextInput,
-} from "flowbite-react";
+import { Button, Checkbox, Table, TextInput } from "flowbite-react";
 import React, { useEffect } from "react";
+import _ from 'lodash';
 import {
   JSXElementConstructor,
   Key,
@@ -12,8 +8,8 @@ import {
   ReactNode,
   ReactPortal,
 } from "react";
-
 import { ContextSwitcher } from "./contextSwitcher";
+import { inputHook } from "../../hooks/inputhook";
 
 export function DisplayTable(props: {
   header: any[];
@@ -24,6 +20,10 @@ export function DisplayTable(props: {
   const [searchValue, setSearchValue] = React.useState("");
   const [renderData, setRenderData] = React.useState<any[][]>(props.data || []);
   const [originData, setOriginData] = React.useState<any[][]>(props.data || []);
+  const [filterTags, setFilterTags] = React.useState<string[]>(
+    localStorage.getItem("filterTags")?.split(",") || []
+  );
+  const [addFilterInput, , onchangeFilterInput] = inputHook("");
   const onSearchChange = (e: {
     target: { value: React.SetStateAction<string> };
   }) => {
@@ -41,6 +41,21 @@ export function DisplayTable(props: {
     }
   };
 
+  useEffect(() => {
+    if(filterTags.length !== 0){
+       localStorage.setItem("filterTags", filterTags.join(","));
+    }
+  }, [filterTags]);
+
+  const addFilterTag = () => {
+    setFilterTags([...filterTags, addFilterInput]);
+   
+  };
+
+  const clearFlags = () => {
+    setFilterTags([]);
+    localStorage.removeItem("filterTags");
+  }
 
   useEffect(() => {
     if (searchValue === "") {
@@ -57,7 +72,9 @@ export function DisplayTable(props: {
           return cellString.includes(searchValue.toLowerCase());
         });
       });
-      setRenderData(result);
+      if (!_.isEqual(renderData, result)) {
+        setRenderData(result);
+      }
     }
   }, [searchValue, renderData]);
 
@@ -66,14 +83,11 @@ export function DisplayTable(props: {
     setOriginData(props.data);
   }, [props.data]);
 
-  
-
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        
         <ContextSwitcher onSwitch={props.refresh} />
-        
+
         <div className="flex items-center mb-4 ">
           <Button
             className="mr-2"
@@ -92,6 +106,43 @@ export function DisplayTable(props: {
           />
         </div>
       </div>
+      <div className="flex justify-start items-center m-4">
+        Filter Tags:
+        <TextInput
+          className="ml-4"
+          value={addFilterInput}
+          onChange={onchangeFilterInput}
+          placeholder="add tag for filter"
+        />
+        <Button className="ml-4" onClick={addFilterTag}>
+          Add
+        </Button>
+      
+      </div>
+     
+      
+      {filterTags.length === 0 ? null :(
+         <div className="flex justify-start items-center m-4">
+        Filters:
+        {filterTags.map((tag) => (
+          <div className="flex">
+          <Button
+            key={tag}
+            color={"success"}
+            onClick={() => {
+              setSearchValue(tag);
+            }}
+            className="ml-4"
+          >
+            {tag}
+          </Button>
+         
+          </div>
+        ))}
+          <Button onClick={clearFlags} color="failure" className="ml-6">Clear</Button>
+          </div>)}
+        
+ 
       <div className="w-[calc(100vw-4rem)]">
         <Table hoverable>
           <Table.Head>
