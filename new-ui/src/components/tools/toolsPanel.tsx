@@ -1,67 +1,54 @@
-import { Card } from "flowbite-react";
-import { DockerShell } from "./dockerShell";
-import { useState } from "react";
-import { JsonFormatter } from "./jsonFormatter";
-import { HttpHelper } from "./httpHelper";
+import { useState } from 'react';
+import { DockerShell } from './dockerShell';
+import { JsonFormatter } from './jsonFormatter';
+import { HttpHelper } from './httpHelper';
+import { EncodeHelper } from './encodeHelper';
+
 export const ToolsPanel = () => {
-  const tooksMap: { [key: string]: any } = {
-    dockerShell: 
-          <DockerShell iframeKey={Date.now()} />,
-    jsonFormatter:
-         <JsonFormatter />,
-    httpHelper:
-            <HttpHelper />,  
-    default:null,          
+  const toolsMap: { [key: string]: any } = {
+    dockerShell: { title: 'Docker Shell', component: <DockerShell iframeKey={Date.now()} /> },
+    jsonFormatter: { title: 'Json Formatter', component: <JsonFormatter /> },
+    httpHelper: { title: 'Http Helper', component: <HttpHelper /> },
+    encodeHelper: { title: 'Encode Helper', component: <EncodeHelper /> },
   };
 
-  const [currentTool, setCurrentTool] = useState("default");
+  const [currentTool, setCurrentTool] = useState('default');
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div>
-      <div className="flex justify-center">
-        <div className="grid grid-cols-4 gap-4 m-4 max-w-screen-lg mx-auto">
-          <div className=" h-20 flex justify-center items-center">
-            <Card className="max-w-sm">
-              <a
-                onClick={() => {
-                  setCurrentTool("dockerShell");
-                }}
-              >
-                <h5 className="text-2xl font-bold tracking-tight text-gray-900">
-                  Docker Shell
-                </h5>
-              </a>
-            </Card>
-          </div>
-          <div className=" h-20 flex justify-center items-center">
-            <Card className="max-w-sm">
-              <a
-                onClick={() => {
-                  setCurrentTool("jsonFormatter");
-                }}
-              >
-                <h5 className="text-2xl font-bold tracking-tight text-gray-900 ">
-                  Json Formatter
-                </h5>
-              </a>
-            </Card>
-          </div>
-          <div className=" h-20 flex justify-center items-center">
-            <Card className="max-w-sm">
-              <a
-                onClick={() => {
-                  setCurrentTool("httpHelper");
-                }}
-              >
-                <h5 className="text-2xl font-bold tracking-tight text-gray-900">
-                  Http Helper
-                </h5>
-              </a>
-            </Card>
-          </div>
-        </div>
+    <div className="flex">
+    
+      <div className={`fixed min-h-screen ${isExpanded ? 'w-64' : 'w-16'} transition-all duration-300 ease-in-out bg-gray-200 text-gray-800 flex flex-col items-center py-2 shadow-lg`} >
+        <button onClick={() => setIsExpanded(!isExpanded)} className="m-4 p-2 rounded hover:bg-gray-300 focus:outline-none">
+          {isExpanded ? '<<' : '>>'}
+        </button>
+        {isExpanded && (
+          Object.keys(toolsMap).map((key) => (
+            <CardComponent
+              key={key}
+              title={toolsMap[key].title}
+              onClick={() => {
+                setCurrentTool(key);
+                setIsExpanded(false); // Close the panel once a tool is selected
+              }}
+            />
+          ))
+        )}
       </div>
-      <div >{tooksMap[currentTool] ? tooksMap[currentTool] : null}</div>
+      <div 
+        className="flex-grow p-4 transition-margin duration-300 ease-in-out" 
+        style={{ marginLeft: isExpanded ? '256px' : '64px' }} // Adjust these values as needed
+      >
+        {toolsMap[currentTool] ? toolsMap[currentTool].component : 'Select a tool from the sidebar'}
+      </div>
     </div>
   );
 };
+
+function CardComponent({ title, onClick }: { title: string; onClick: () => void }) {
+  return (
+    <div className="cursor-pointer py-2 px-4 w-full text-center hover:bg-gray-300 rounded transition-colors duration-200" onClick={onClick}>
+      <h5 className="text-sm">{title}</h5>
+    </div>
+  );
+}

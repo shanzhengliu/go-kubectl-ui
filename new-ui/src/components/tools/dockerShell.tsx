@@ -6,7 +6,7 @@ export const  DockerShell = ( props: {
 } ) =>{
   return (
     <div  key={props.iframeKey} className="h-screen m-4">
-     <iframe  className="w-full" src={LOCALSHELL} title="Docker Shell"  style={{ height: "calc(80vh - 2rem)" }} />
+     <iframe  className="w-full h-full" src={LOCALSHELL} title="Docker Shell"  />
     </div>
   );
 }
