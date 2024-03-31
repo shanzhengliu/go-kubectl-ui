@@ -1,4 +1,4 @@
-import { Label, List } from "flowbite-react";
+import {  List } from "flowbite-react";
 import { FaFile, FaFolder, FaFolderOpen } from "react-icons/fa";
 import { OPENAPI_HELPER_GET_FILES } from "../../utils/endpoints";
 import { useEffect, useState } from "react";

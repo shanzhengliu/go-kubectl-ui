@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -56,7 +57,7 @@ func StartOpenAPIHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Port is already in use", http.StatusBadRequest)
 		return
 	}
-	StartOpenAPIFunction(requestBody.Path, requestBody.Port, r)
+	StartOpenAPIFunction(requestBody.Path, requestBody.Port, r, w)
 
 	w.Write([]byte("OK"))
 }
@@ -111,15 +112,7 @@ func GetOpenAPIValueFromRequest(r *http.Request, doc *openapi3.T) (int, string, 
 	status := 200
 	contentType := "application/json"
 	example := ""
-
-	if len(doc.Servers) > 0 && r.Header.Get("openapi-server") == "" {
-		if strings.Contains(doc.Servers[0].URL, "://") {
-			r.Host = strings.Split(doc.Servers[0].URL, "://")[1]
-		} else {
-			r.Host = doc.Servers[0].URL
-		}
-
-	}
+	r.Host = ""
 	if r.Header.Get("openapi-status-code") != "" {
 		status, _ = strconv.Atoi(r.Header.Get("openapi-status-code"))
 
@@ -148,27 +141,34 @@ func MethodResponse(method string, pathItem *openapi3.PathItem) *openapi3.Respon
 	}
 }
 
-func StartOpenAPIFunction(path string, port string, r *http.Request) {
+func StartOpenAPIFunction(path string, port string, r *http.Request, w http.ResponseWriter) {
 
 	ctxMap := r.Context().Value("map").(map[string]interface{})
-	loader := openapi3.NewLoader()
+	ctx := context.Background()
+	loader := &openapi3.Loader{Context: ctx, IsExternalRefsAllowed: true}
 	doc, err := loader.LoadFromFile(path)
+	if len(doc.Servers) > 0 {
+		doc.Servers[0].URL = ""
+
+	}
 	if err != nil {
 		fmt.Printf("Failed to load OpenAPI document: %v", err)
-	}
-	err = doc.Validate(loader.Context)
-	if err != nil {
-		fmt.Printf("Failed to Valid OpenAPI document: %v", err)
-	}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Failed to load OpenAPI document"))
+		return
 
+	}
 	router, err := gorillamux.NewRouter(doc)
 	if err != nil {
 		fmt.Printf("Failed to create route: %v", err)
 	}
-	mux := http.NewServeMux()
+	mux := NewEnhancedMux(path)
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		status, contentType, exampleKey := GetOpenAPIValueFromRequest(r, doc)
+		fmt.Println("status", status, "contentType", contentType, "exampleKey", exampleKey)
+
 		route, pathParams, err := router.FindRoute(r)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
@@ -192,12 +192,40 @@ func StartOpenAPIFunction(path string, port string, r *http.Request) {
 		var response interface{}
 		for key, example := range examples {
 			if response == nil && exampleKey == "" {
-				response = example.Value
+				response = example.Value.Value
 			}
 			if key == exampleKey {
-				response = example.Value
+				response = example.Value.Value
 			}
 		}
+		dirPath := filepath.Dir(path)
+		if refMap, ok := response.(map[string]interface{}); ok {
+
+			if ref, ok := refMap["$ref"]; ok {
+				refPath := filepath.Join(dirPath, ref.(string))
+				//read file from the path to json
+				file, err := os.ReadFile(refPath)
+				if err != nil {
+					fmt.Println("Failed to read file: %v", err)
+					w.WriteHeader(http.StatusInternalServerError)
+					fmt.Fprintf(w, "Failed to read file: %v", err)
+					return
+				}
+				err = json.Unmarshal(file, &response)
+				if err != nil {
+					fmt.Println("Failed to unmarshal response: %v", err)
+					w.WriteHeader(http.StatusInternalServerError)
+					fmt.Fprintf(w, "Failed to unmarshal response: %v", err)
+					return
+
+				}
+			} else {
+				fmt.Println("'$ref' not found")
+			}
+		} else {
+			fmt.Println("response not the expect type")
+		}
+
 		jsonData, err := json.Marshal(response)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -248,7 +276,7 @@ func StopOpenAPIFunction(path string, port string, r *http.Request, w http.Respo
 type FileTree map[string]interface{}
 
 func GetFileTreeHandler(w http.ResponseWriter, r *http.Request) {
-	directoryPath := "/private/tmp/kubectl-go-upload/"
+	directoryPath := "/tmp/kubectl-go-upload/"
 	fileTree := GetFileTree(directoryPath)
 
 	jsonResponse, err := json.Marshal(fileTree)
@@ -304,6 +332,13 @@ func GetCurrentOpenAPIListPortAndFileName(r *http.Request) []OpenAPIListenItem {
 		}
 	}
 	return openAPIList
+}
+
+type GlobalVarsKey struct{}
+
+// 全局变量结构
+type GlobalVars struct {
+	// 在此处添加你想要的任何全局变量
 }
 
 func GetOpenAPIListHandler(w http.ResponseWriter, r *http.Request) {
