@@ -86,7 +86,7 @@ func StopAllOpenAPIHandler(w http.ResponseWriter, r *http.Request) {
 	for _, openAPIItem := range openAPIList {
 
 		ctxMap := r.Context().Value("map").(map[string]interface{})
-		key := "openapi#server#" + openAPIItem.Path + "#" + openAPIItem.Port
+		key := "openapi#server#" + "/tmp/kubectl-go-upload" + openAPIItem.Path + "#" + openAPIItem.Port
 		srv, ok := ctxMap[key].(*http.Server)
 		if !ok {
 			w.Header().Set("Content-Type", "application/json")
@@ -163,11 +163,10 @@ func StartOpenAPIFunction(path string, port string, r *http.Request, w http.Resp
 	if err != nil {
 		fmt.Printf("Failed to create route: %v", err)
 	}
-	mux := NewEnhancedMux(path)
+	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		status, contentType, exampleKey := GetOpenAPIValueFromRequest(r, doc)
-		fmt.Println("status", status, "contentType", contentType, "exampleKey", exampleKey)
 
 		route, pathParams, err := router.FindRoute(r)
 		if err != nil {
@@ -233,7 +232,7 @@ func StartOpenAPIFunction(path string, port string, r *http.Request, w http.Resp
 			return
 		}
 		w.Header().Set("Content-Type", contentType)
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(status)
 		w.Write(jsonData)
 	})
 

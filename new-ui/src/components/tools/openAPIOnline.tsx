@@ -5,6 +5,8 @@ import { OPENAPI_HELPER_LIST, OPENAPI_HELPER_START, OPENAPI_HELPER_STOP, OPENAPI
 import { FileTreeComponent } from "./fileTree";
 import { inputHook } from "../../hooks/inputhook";
 import { axiosInstance } from "../../utils/axios";
+import Swal from "sweetalert2";
+import { AxiosError } from "axios";
 interface OpenAPIList {
     path: string;
     port: string;
@@ -91,27 +93,39 @@ export const OpenAPIOnline = () => {
         const response = await axiosInstance(options);
         return response;
     } catch (error) {
+        console.error(error);
+        Swal.fire({
+            icon: "error",
+            text: ((error as AxiosError).response?.data || "Failed to start listener").toString(),
+        });
         return error;
-    }
-    
+    } 
   }
   
 
   return (
     <div className="">
-      <div className="mb-2 w-full flex">
-        <div className="mb-2  block">
-          <h2> Upload file: </h2>
+        <div>
+            <h1>OpenAPI Online </h1>
+            <span>you can upload the openapi file and start a server for testing via ui, now you can set up <span style={{"color":"red"}}>"openapi-status-code"</span>, <span style={{"color":"red"}}>"openapi-example"</span>, or <span style={{"color":"red"}}>"openapi-content-type"</span> in request header to control the response </span>
         </div>
+      <div className="mt-4 mb-2 w-full flex">
+        <div className="mt-2 block">
+          Upload file
+        </div>
+        <div className="flex-grow ml-2">
         <FileInput
           accept=".zip"
           className="flex-grow"
           id="file-upload"
           onChange={handleFileChange}
         />
+        </div>
+        <div>
         <Button className="ml-2" onClick={() => uploadZip(file)}>
           Submit
         </Button>
+        </div>
       </div>
       <div className="mb-2 w-full flex flex-grow">
         <div className="mb-2 w-full">

@@ -47,7 +47,7 @@ export const FileTreeComponent = (props:{
             key={path}
            
             className={`level-${level}`}
-            style={{ paddingLeft: `${level * 20}px`,listStyle: 'none', cursor: 'pointer' }}
+            style={{ paddingLeft: `${level * 5}px`,listStyle: 'none', cursor: 'pointer' }}
            
           >
             {isDirectory ? (
