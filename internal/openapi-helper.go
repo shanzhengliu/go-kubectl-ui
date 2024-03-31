@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -37,26 +36,75 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("File uploaded successfully!"))
 }
 
-func OpenapiHandler(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Query().Get("path")
-	port := r.URL.Query().Get("port")
-	if path == "" || port == "" {
-		http.Error(w, "Path and port query parameters are required", http.StatusBadRequest)
+func StartOpenAPIHandler(w http.ResponseWriter, r *http.Request) {
+	var requestBody struct {
+		Path string `json:"path"`
+		Port string `json:"port"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	StartOpenAPIHandler(path, port, r)
+
+	if requestBody.Path == "" || requestBody.Port == "" {
+		http.Error(w, "Path and port are required in the request body", http.StatusBadRequest)
+		return
+	}
+	if !IsPortAvailable(requestBody.Port) {
+		http.Error(w, "Port is already in use", http.StatusBadRequest)
+		return
+	}
+	StartOpenAPIFunction(requestBody.Path, requestBody.Port, r)
 
 	w.Write([]byte("OK"))
 }
 
-func StopOpenapiHandler(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Query().Get("path")
-	port := r.URL.Query().Get("port")
-	if path == "" || port == "" {
-		http.Error(w, "Path and port query parameters are required", http.StatusBadRequest)
+func StopOpenAPIHandler(w http.ResponseWriter, r *http.Request) {
+	var requestBody struct {
+		Path string `json:"path"`
+		Port string `json:"port"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	StopOpenAPIHandler(path, port, r, w)
+
+	if requestBody.Path == "" || requestBody.Port == "" {
+		http.Error(w, "Path and port are required in the request body", http.StatusBadRequest)
+		return
+	}
+	StopOpenAPIFunction(requestBody.Path, requestBody.Port, r, w)
+}
+
+func StopAllOpenAPIHandler(w http.ResponseWriter, r *http.Request) {
+	openAPIList := GetCurrentOpenAPIListPortAndFileName(r)
+	for _, openAPIItem := range openAPIList {
+
+		ctxMap := r.Context().Value("map").(map[string]interface{})
+		key := "openapi#server#" + openAPIItem.Path + "#" + openAPIItem.Port
+		srv, ok := ctxMap[key].(*http.Server)
+		if !ok {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("No server found"))
+			return
+		}
+		if err := srv.Shutdown(r.Context()); err != nil {
+			log.Fatalf("Shutdown(): %v", err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Failed to shutdown server"))
+			return
+		}
+		delete(ctxMap, key)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("All Server shutdown successfully"))
 }
 
 func GetOpenAPIValueFromRequest(r *http.Request, doc *openapi3.T) (int, string, string) {
@@ -100,23 +148,8 @@ func MethodResponse(method string, pathItem *openapi3.PathItem) *openapi3.Respon
 	}
 }
 
-func IsPortAvailable(port string) bool {
-	ln, err := net.Listen("tcp", ":"+port)
-	if err != nil {
-		return false // Port is likely taken
-	}
-	ln.Close()  // Close the listener and release the port
-	return true // Port is available
-}
+func StartOpenAPIFunction(path string, port string, r *http.Request) {
 
-func StartOpenAPIHandler(path string, port string, r *http.Request) {
-	if IsPortAvailable(port) {
-		fmt.Printf("Port %s is available.\n", port)
-
-	} else {
-		fmt.Printf("Port %s is not available.\n", port)
-		return
-	}
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	loader := openapi3.NewLoader()
 	doc, err := loader.LoadFromFile(path)
@@ -132,8 +165,9 @@ func StartOpenAPIHandler(path string, port string, r *http.Request) {
 	if err != nil {
 		fmt.Printf("Failed to create route: %v", err)
 	}
+	mux := http.NewServeMux()
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		status, contentType, exampleKey := GetOpenAPIValueFromRequest(r, doc)
 		route, pathParams, err := router.FindRoute(r)
 		if err != nil {
@@ -177,7 +211,7 @@ func StartOpenAPIHandler(path string, port string, r *http.Request) {
 
 	srv := &http.Server{
 		Addr:    ":" + port,
-		Handler: nil,
+		Handler: mux,
 	}
 	ctxMap["openapi#server#"+path+"#"+port] = srv
 	go func() {
@@ -188,32 +222,99 @@ func StartOpenAPIHandler(path string, port string, r *http.Request) {
 
 }
 
-func StopOpenAPIHandler(path string, port string, r *http.Request, w http.ResponseWriter) {
+func StopOpenAPIFunction(path string, port string, r *http.Request, w http.ResponseWriter) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
-	srv := ctxMap["openapi#server#"+path+"#"+port].(*http.Server)
-	if srv == nil {
+	key := "openapi#server#" + path + "#" + port
+	srv, ok := ctxMap[key].(*http.Server)
+	if !ok {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("No server found"))
+		return
 	}
 	if err := srv.Shutdown(r.Context()); err != nil {
 		log.Fatalf("Shutdown(): %v", err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Failed to shutdown server"))
+		return
 	}
+	delete(ctxMap, key)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Server shutdown successfully"))
 }
 
-func fileListInDirectory(dir string) ([]string, error) {
-	var files []string
-	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if !info.IsDir() {
-			files = append(files, path)
+type FileTree map[string]interface{}
+
+func GetFileTreeHandler(w http.ResponseWriter, r *http.Request) {
+	directoryPath := "/private/tmp/kubectl-go-upload/"
+	fileTree := GetFileTree(directoryPath)
+
+	jsonResponse, err := json.Marshal(fileTree)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResponse)
+}
+
+func GetFileTree(directoryPath string) FileTree {
+	fileTree := make(FileTree)
+
+	files, err := os.ReadDir(directoryPath)
+	if err != nil {
+		log.Println("Error reading directory:", err)
+		return fileTree
+	}
+
+	for _, file := range files {
+		filePath := filepath.Join(directoryPath, file.Name())
+
+		if file.IsDir() {
+			fileTree[file.Name()] = GetFileTree(filePath)
+		} else {
+			if strings.Split(file.Name(), ".")[1] == "yaml" ||
+				strings.Split(file.Name(), ".")[1] == "yml" ||
+				strings.Split(file.Name(), ".")[1] == "json" {
+				fileTree[file.Name()] = true
+			}
 		}
-		return nil
-	})
-	return files, nil
+	}
+
+	return fileTree
+}
+
+type OpenAPIListenItem struct {
+	Path string `json:"path"`
+	Port string `json:"port"`
+}
+
+func GetCurrentOpenAPIListPortAndFileName(r *http.Request) []OpenAPIListenItem {
+	ctxMap := r.Context().Value("map").(map[string]interface{})
+	var openAPIList []OpenAPIListenItem
+	for key := range ctxMap {
+		if strings.Contains(key, "openapi#server#") {
+			openAPIList = append(openAPIList, OpenAPIListenItem{
+				Path: strings.Replace(strings.Split(key, "#")[2], "/tmp/kubectl-go-upload", "", -1),
+				Port: strings.Split(key, "#")[3],
+			})
+		}
+	}
+	return openAPIList
+}
+
+func GetOpenAPIListHandler(w http.ResponseWriter, r *http.Request) {
+	openAPIList := GetCurrentOpenAPIListPortAndFileName(r)
+
+	jsonResponse, err := json.Marshal(openAPIList)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResponse)
 }

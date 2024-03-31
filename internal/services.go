@@ -81,6 +81,12 @@ func ServiceForwardHandler(w http.ResponseWriter, r *http.Request) {
 	servicePort := r.URL.Query().Get("servicePort")
 	localPort := r.URL.Query().Get("localPort")
 
+	isPortAvailable := IsPortAvailable(localPort)
+	if !isPortAvailable {
+		http.Error(w, "Port is already in use", http.StatusBadRequest)
+		return
+	}
+
 	key := fmt.Sprintf("service#forward#%s#%s#%s#%s#%s", currentContext, namespace, serviceName, localPort, servicePort)
 	if ctxMap[key] != nil {
 		http.Error(w, "Port-forward process already exists for given service", http.StatusBadRequest)
