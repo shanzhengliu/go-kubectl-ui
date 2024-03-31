@@ -15,7 +15,7 @@ export const ToolsPanel = () => {
   };
 
   const [currentTool, setCurrentTool] = useState('default');
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   return (
     <div className="flex">

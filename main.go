@@ -163,6 +163,8 @@ func main() {
 	router.HandleFunc("/api/stop-port-forward", Chain(internal.StopPortForward, ContextAdd(ctx)))
 	router.HandleFunc("/api/start-port-forward", Chain(internal.ServiceForwardHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/openapi-helper-upload", Chain(internal.UploadFileHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/openapi-helper-start", Chain(internal.OpenapiHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/openapi-helper-stop", Chain(internal.StopOpenapiHandler, ContextAdd(ctx)))
 
 	cor := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
