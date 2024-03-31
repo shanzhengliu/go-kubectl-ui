@@ -198,10 +198,11 @@ func StartOpenAPIFunction(path string, port string, r *http.Request, w http.Resp
 			}
 		}
 		dirPath := filepath.Dir(path)
+		refPath := path
 		if refMap, ok := response.(map[string]interface{}); ok {
 
 			if ref, ok := refMap["$ref"]; ok {
-				refPath := filepath.Join(dirPath, ref.(string))
+				refPath = filepath.Join(dirPath, ref.(string))
 				//read file from the path to json
 				file, err := os.ReadFile(refPath)
 				if err != nil {
@@ -225,12 +226,13 @@ func StartOpenAPIFunction(path string, port string, r *http.Request, w http.Resp
 			fmt.Println("response not the expect type")
 		}
 
-		jsonData, err := json.Marshal(response)
+		err = replaceRefs(response, filepath.Dir(refPath))
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Failed to marshal response: %v", err)
 			return
 		}
+		jsonData, err := json.Marshal(response)
 		w.Header().Set("Content-Type", contentType)
 		w.WriteHeader(status)
 		w.Write(jsonData)

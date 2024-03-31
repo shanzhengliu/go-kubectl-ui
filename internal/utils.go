@@ -2,6 +2,7 @@ package internal
 
 import (
 	"archive/zip"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -159,4 +160,39 @@ func IsPortAvailable(port string) bool {
 	}
 	ln.Close()  // Close the listener and release the port
 	return true // Port is available
+}
+
+func replaceRefs(obj interface{}, dirPath string) error {
+	switch value := obj.(type) {
+	case map[string]interface{}:
+		for k, v := range value {
+			if k == "$ref" {
+				refPath := filepath.Join(dirPath, v.(string))
+				file, err := os.ReadFile(refPath)
+				if err != nil {
+					return fmt.Errorf("failed to read file: %v", err)
+				}
+				var refValue interface{}
+				err = json.Unmarshal(file, &refValue)
+				if err != nil {
+					return fmt.Errorf("failed to unmarshal ref value: %v", err)
+				}
+				value[k] = refValue
+			} else {
+				err := replaceRefs(v, dirPath)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	case []interface{}:
+		for i, v := range value {
+			err := replaceRefs(v, dirPath)
+			if err != nil {
+				return err
+			}
+			value[i] = v
+		}
+	}
+	return nil
 }
