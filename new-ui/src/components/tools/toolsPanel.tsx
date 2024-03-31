@@ -3,6 +3,7 @@ import { DockerShell } from './dockerShell';
 import { JsonFormatter } from './jsonFormatter';
 import { HttpHelper } from './httpHelper';
 import { EncodeHelper } from './encodeHelper';
+import { OpenAPIOnline } from './openAPIOnline';
 
 export const ToolsPanel = () => {
   const toolsMap: { [key: string]: any } = {
@@ -10,10 +11,11 @@ export const ToolsPanel = () => {
     jsonFormatter: { title: 'Json Formatter', component: <JsonFormatter /> },
     httpHelper: { title: 'Http Helper', component: <HttpHelper /> },
     encodeHelper: { title: 'Encode Helper', component: <EncodeHelper /> },
+    openAPIOnline: { title: 'OpenAPI Online', component: <OpenAPIOnline /> },
   };
 
   const [currentTool, setCurrentTool] = useState('default');
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   return (
     <div className="flex">

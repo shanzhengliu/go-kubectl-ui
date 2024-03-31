@@ -162,6 +162,13 @@ func main() {
 	router.HandleFunc("/api/proxy", Chain(internal.ProxyHandler, ContextAdd(ctx)))
 	router.HandleFunc("/api/stop-port-forward", Chain(internal.StopPortForward, ContextAdd(ctx)))
 	router.HandleFunc("/api/start-port-forward", Chain(internal.ServiceForwardHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/openapi-helper-upload", Chain(internal.UploadFileHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/openapi-helper-start", Chain(internal.StartOpenAPIHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/openapi-helper-stop", Chain(internal.StopOpenAPIHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/openapi-helper-stop-all", Chain(internal.StopAllOpenAPIHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/openapi-helper-get-files", Chain(internal.GetFileTreeHandler, ContextAdd(ctx)))
+	// this url is current listening files
+	router.HandleFunc("/api/openapi-helper-list", Chain(internal.GetOpenAPIListHandler, ContextAdd(ctx)))
 
 	cor := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},

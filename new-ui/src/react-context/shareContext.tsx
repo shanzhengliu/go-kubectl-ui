@@ -36,3 +36,5 @@ export const k8sCurrentComponentStore = create<K8SCurrentComponentStore>((set) =
     setCurrentComponent: (currentComponent: string) => set({ currentComponent }),
  }));    
 
+
+
