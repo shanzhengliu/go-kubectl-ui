@@ -104,9 +104,6 @@ export const HttpHelper = () => {
         setResponseHeader(responseHeaderGenerate(error.response.headers));
       });
 
-    // axios(options).then((response) => {
-    //   console.log(response);
-    // });
   };
   return (
     <div>

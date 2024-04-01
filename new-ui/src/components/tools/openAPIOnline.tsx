@@ -1,12 +1,19 @@
-import { Button, FileInput, Label, TextInput } from "flowbite-react";
-import { useEffect, useState } from "react";
-import { OPENAPI_HELPER_LIST, OPENAPI_HELPER_START, OPENAPI_HELPER_STOP, OPENAPI_HELPER_STOP_ALL, OPENAPI_HELPER_UPLOAD } from "../../utils/endpoints";
+import {Button, FileInput, Label, TextInput} from "flowbite-react";
+import {useEffect, useState} from "react";
+import {
+    OPENAPI_HELPER_LIST,
+    OPENAPI_HELPER_START,
+    OPENAPI_HELPER_STOP,
+    OPENAPI_HELPER_STOP_ALL,
+    OPENAPI_HELPER_UPLOAD
+} from "../../utils/endpoints";
 
-import { FileTreeComponent } from "./fileTree";
-import { inputHook } from "../../hooks/inputhook";
-import { axiosInstance } from "../../utils/axios";
+import {FileTreeComponent} from "./fileTree";
+import {inputHook} from "../../hooks/inputhook";
+import {axiosInstance} from "../../utils/axios";
 import Swal from "sweetalert2";
-import { AxiosError } from "axios";
+import {errorHander} from "../../utils/tools.tsx";
+
 interface OpenAPIList {
     path: string;
     port: string;
@@ -16,7 +23,7 @@ export const OpenAPIOnline = () => {
   const [file, setFile] = useState(null);
   const [selectFile, setSelectFile] = useState<string>("NONE");
   const [uploadTimestamp, setUploadTimestamp] = useState(Date.now());
-  const [port, , onCHangeSetPort] = inputHook("7001");
+  const [port, , onChangeSetPort] = inputHook("7001");
   const [openApiList, setOpenApiList] = useState<OpenAPIList[]>([]);
 
   const selectFileSelectForListener = (path: string) => {
@@ -31,26 +38,25 @@ export const OpenAPIOnline = () => {
     const formData = new FormData();
     formData.append("file", file);
     try {
-      const response = await fetch(OPENAPI_HELPER_UPLOAD, {
+      await fetch(OPENAPI_HELPER_UPLOAD, {
         method: "POST",
         body: formData,
       });
-      if (!response.ok) {
-        throw new Error("Failed to upload file");
-      }
       setUploadTimestamp(Date.now());
     } catch (error) {
-      console.error(error);
+        errorHander(error)
     }
   };
 
   const startListener = async () => {
       if (selectFile === "NONE") {
-          Swal.fire({
+          await Swal.fire({
                 icon: "error",
                 text: "Please select a file to start listener",
             });
+          return ;
           }
+
      await listenOperation("start", selectFile, port);
      setOpenApiList( await axiosInstance({ method: "GET", url: OPENAPI_HELPER_LIST }).then(response => response.data)) ;
   }
@@ -96,14 +102,9 @@ export const OpenAPIOnline = () => {
         }),
     };
     try {
-        const response = await axiosInstance(options);
-        return response;
+        return await axiosInstance(options);
     } catch (error) {
-        console.error(error);
-        Swal.fire({
-            icon: "error",
-            text: ((error as AxiosError).response?.data || "Failed to start listener").toString(),
-        });
+        errorHander(error)
         return error;
     } 
   }
@@ -113,7 +114,7 @@ export const OpenAPIOnline = () => {
     <div className="">
         <div>
             <h1>OpenAPI Online </h1>
-            <span>you can upload the openapi  <span style={{color:"red"}}>zip</span> file and start a server for testing via ui, now you can set up <span style={{"color":"red"}}>"openapi-status-code"</span>, <span style={{"color":"red"}}>"openapi-example"</span>, or <span style={{"color":"red"}}>"openapi-content-type"</span> in request header to control the response </span>
+            <span>you can upload the openapi  <span style={{color:"red"}}>zip</span>, <span style={{color:"red"}}>yaml</span> file and start a server for testing via ui, now you can set up <span style={{"color":"red"}}>"openapi-status-code"</span>, <span style={{"color":"red"}}>"openapi-example"</span>, or <span style={{"color":"red"}}>"openapi-content-type"</span> in request header to control the response </span>
         </div>
       <div className="mt-4 mb-2 w-full flex">
         <div className="mt-2 block">
@@ -121,7 +122,7 @@ export const OpenAPIOnline = () => {
         </div>
         <div className="flex-grow ml-2">
         <FileInput
-          accept=".zip"
+          accept=".zip,.yaml,.yml"
           className="flex-grow"
           id="file-upload"
           onChange={handleFileChange}
@@ -147,7 +148,7 @@ export const OpenAPIOnline = () => {
           <TextInput
             className="w-full mt-2"
             value={port}
-            onChange={onCHangeSetPort}
+            onChange={onChangeSetPort}
           />
           <div className="flex mt-2 justify-end" >
           <Button className="mt-4" onClick={startListener} >Start</Button>

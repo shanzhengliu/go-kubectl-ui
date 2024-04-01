@@ -70,15 +70,37 @@ func GetCacheFileNameByCtxMap(ctxMap map[string]interface{}, kubeContext string)
 }
 
 func UnzipAndSave(r *http.Request, w http.ResponseWriter, dest string) error {
-	file, _, err := r.FormFile("file")
-
+	file, header, err := r.FormFile("file")
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	stat, err := file.(io.Seeker).Seek(0, io.SeekEnd)
+	if strings.HasSuffix(header.Filename, ".yaml") || strings.HasSuffix(header.Filename, ".yml") {
 
+		folderName := strings.TrimSuffix(header.Filename, filepath.Ext(header.Filename))
+		folderPath := filepath.Join(dest, folderName)
+		err = os.MkdirAll(folderPath, os.ModePerm)
+		if err != nil {
+			return err
+		}
+
+		filePath := filepath.Join(folderPath, header.Filename)
+		outFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+		if err != nil {
+			return err
+		}
+		defer outFile.Close()
+
+		_, err = io.Copy(outFile, file)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	stat, err := file.(io.Seeker).Seek(0, io.SeekEnd)
 	if err != nil {
 		return err
 	}
@@ -131,7 +153,6 @@ func UnzipAndSave(r *http.Request, w http.ResponseWriter, dest string) error {
 
 		_, err = io.Copy(outFile, rc)
 
-		// Close the file without defer to handle errors
 		outFile.Close()
 		rc.Close()
 
@@ -195,4 +216,12 @@ func replaceRefs(obj interface{}, dirPath string) error {
 		}
 	}
 	return nil
+}
+
+func ErrorHandlerFunction(httpStatus int, w http.ResponseWriter, err string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(httpStatus)
+	error := map[string]interface{}{"error": err, "status": httpStatus, "errorSource": "go-kubectl-web"}
+
+	json.NewEncoder(w).Encode(error)
 }

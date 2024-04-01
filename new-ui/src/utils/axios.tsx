@@ -4,7 +4,7 @@ import { OKTA, USERINFO } from "./endpoints";
 import {  useUserStore } from "../react-context/shareContext";
 export const axiosInstance = axios.create(
     {
-        timeout: 10000
+        timeout: 15000
     }
 );
 axiosInstance.interceptors.response.use(
@@ -41,24 +41,24 @@ axiosInstance.interceptors.response.use(
       .catch(async (error) => {
         console.log(error);
        
-        Swal.fire({
+        await Swal.fire({
             icon: "error",
             text: "You are not authorized to access this page, you can click the button to login with Okta. or close the modal and switch the context",
-            showConfirmButton: false, 
+            showConfirmButton: false,
             html: '<div>You may need to login via Okta</div><button id="innerButton" class="swal2-confirm swal2-styled">Okta</button><button id="close"  class="swal2-danger swal2-styled" >Close</button>',
             didOpen: () => {
-              const innerButton = document.getElementById('innerButton');
-              if (innerButton) {
-                innerButton.addEventListener('click', openOkta);
-              }
-              const closeButton = document.getElementById('close');
-              if (closeButton) {
-                closeButton.addEventListener('click', () => {
-                  Swal.close();
-                });
-              }
-          }
-         });
+                const innerButton = document.getElementById('innerButton');
+                if (innerButton) {
+                    innerButton.addEventListener('click', openOkta);
+                }
+                const closeButton = document.getElementById('close');
+                if (closeButton) {
+                    closeButton.addEventListener('click', () => {
+                        Swal.close();
+                    });
+                }
+            }
+        });
          return "error";
       });
   }

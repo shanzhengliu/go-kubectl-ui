@@ -5,9 +5,9 @@ import Swal from "sweetalert2";
 export const EncodeHelper = () => {
     const [input, setInput, onChangeInput] = inputHook("");
     const [output, setOutput] = inputHook("");
-    const copyToClipboard = () => {
-        navigator.clipboard.writeText(output);
-        Swal.fire({
+    const copyToClipboard =async  () => {
+        await navigator.clipboard.writeText(output);
+        await Swal.fire({
             icon: "success",
             title: "Copied to clipboard",
             showConfirmButton: false,
@@ -110,7 +110,6 @@ export const EncodeHelper = () => {
                         className="w-24 h-12 mt-4 "
                         gradientDuoTone="greenToBlue"
                         onClick={unicodeEncode}
-
                     >
                         Unicode Encode
                     </Button>

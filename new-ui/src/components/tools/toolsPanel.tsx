@@ -31,7 +31,7 @@ export const ToolsPanel = () => {
               title={toolsMap[key].title}
               onClick={() => {
                 setCurrentTool(key);
-                setIsExpanded(false); // Close the panel once a tool is selected
+                setIsExpanded(false);
               }}
             />
           ))
@@ -39,7 +39,7 @@ export const ToolsPanel = () => {
       </div>
       <div 
         className="flex-grow p-4 transition-margin duration-300 ease-in-out" 
-        style={{ marginLeft: isExpanded ? '256px' : '64px' }} // Adjust these values as needed
+        style={{ marginLeft: isExpanded ? '256px' : '64px' }}
       >
         {toolsMap[currentTool] ? toolsMap[currentTool].component : 'Select a tool from the sidebar'}
       </div>

@@ -18,19 +18,18 @@ import (
 
 func UploadFileHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		ErrorHandlerFunction(http.StatusMethodNotAllowed, w, "Method not allowed")
 		return
 	}
 
 	err := r.ParseMultipartForm(10 << 20) // Max upload size ~10MB
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		ErrorHandlerFunction(http.StatusBadRequest, w, "Failed to parse form")
 		return
 	}
-
 	err = UnzipAndSave(r, w, "/tmp/kubectl-go-upload")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		ErrorHandlerFunction(http.StatusBadRequest, w, "Failed to unzip and save file")
 		return
 	}
 
@@ -45,7 +44,7 @@ func StartOpenAPIHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		ErrorHandlerFunction(http.StatusBadRequest, w, "Invalid request body")
 		return
 	}
 
@@ -54,7 +53,7 @@ func StartOpenAPIHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !IsPortAvailable(requestBody.Port) {
-		http.Error(w, "Port is already in use", http.StatusBadRequest)
+		ErrorHandlerFunction(http.StatusBadRequest, w, "Port is already in use")
 		return
 	}
 	StartOpenAPIFunction(requestBody.Path, requestBody.Port, r, w)
@@ -70,12 +69,12 @@ func StopOpenAPIHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		ErrorHandlerFunction(http.StatusBadRequest, w, "Invalid request body")
 		return
 	}
 
 	if requestBody.Path == "" || requestBody.Port == "" {
-		http.Error(w, "Path and port are required in the request body", http.StatusBadRequest)
+		ErrorHandlerFunction(http.StatusBadRequest, w, "Path and port are required in the request body")
 		return
 	}
 	StopOpenAPIFunction(requestBody.Path, requestBody.Port, r, w)
@@ -89,16 +88,11 @@ func StopAllOpenAPIHandler(w http.ResponseWriter, r *http.Request) {
 		key := "openapi#server#" + "/tmp/kubectl-go-upload" + openAPIItem.Path + "#" + openAPIItem.Port
 		srv, ok := ctxMap[key].(*http.Server)
 		if !ok {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("No server found"))
+			ErrorHandlerFunction(http.StatusNotFound, w, "No server found")
 			return
 		}
 		if err := srv.Shutdown(r.Context()); err != nil {
-			log.Fatalf("Shutdown(): %v", err)
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Failed to shutdown server"))
+			ErrorHandlerFunction(http.StatusInternalServerError, w, "Failed to shutdown server")
 			return
 		}
 		delete(ctxMap, key)
@@ -153,15 +147,15 @@ func StartOpenAPIFunction(path string, port string, r *http.Request, w http.Resp
 	}
 	if err != nil {
 		fmt.Printf("Failed to load OpenAPI document: %v", err)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Failed to load OpenAPI document"))
+		ErrorHandlerFunction(http.StatusInternalServerError, w, "Failed to load OpenAPI document")
 		return
 
 	}
 	router, err := gorillamux.NewRouter(doc)
 	if err != nil {
 		fmt.Printf("Failed to create route: %v", err)
+		ErrorHandlerFunction(http.StatusInternalServerError, w, "Failed to create route")
+		return
 	}
 	mux := http.NewServeMux()
 
@@ -170,8 +164,7 @@ func StartOpenAPIFunction(path string, port string, r *http.Request, w http.Resp
 
 		route, pathParams, err := router.FindRoute(r)
 		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprintf(w, "Not found: %v", err)
+			ErrorHandlerFunction(http.StatusNotFound, w, "Route not found")
 			return
 		}
 
@@ -183,8 +176,7 @@ func StartOpenAPIFunction(path string, port string, r *http.Request, w http.Resp
 		}
 
 		if err := openapi3filter.ValidateRequest(ctx, requestValidationInput); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintf(w, "Invalid request: %v", err)
+			ErrorHandlerFunction(http.StatusBadRequest, w, fmt.Sprintf("Request validation failed: %v", err))
 			return
 		}
 		responseContent := MethodResponse(route.Method, route.PathItem).Status(status).Value.Content[contentType]
@@ -198,12 +190,11 @@ func StartOpenAPIFunction(path string, port string, r *http.Request, w http.Resp
 			response = examplesHandler(examples, exampleKey, path, w)
 		}
 
-		jsonData, err := json.Marshal(response)
 		w.Header().Set("Content-Type", contentType)
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.WriteHeader(status)
-		w.Write(jsonData)
+		json.NewEncoder(w).Encode(response)
 	})
 
 	srv := &http.Server{
@@ -277,16 +268,11 @@ func StopOpenAPIFunction(path string, port string, r *http.Request, w http.Respo
 	key := "openapi#server#" + path + "#" + port
 	srv, ok := ctxMap[key].(*http.Server)
 	if !ok {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusNotFound)
-		_, _ = w.Write([]byte("No server found"))
+		ErrorHandlerFunction(http.StatusNotFound, w, "No server found")
 		return
 	}
 	if err := srv.Shutdown(r.Context()); err != nil {
-		log.Fatalf("Shutdown(): %v", err)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Failed to shutdown server"))
+		ErrorHandlerFunction(http.StatusInternalServerError, w, "Failed to shutdown server")
 		return
 	}
 	delete(ctxMap, key)
@@ -303,7 +289,7 @@ func GetFileTreeHandler(w http.ResponseWriter, r *http.Request) {
 
 	jsonResponse, err := json.Marshal(fileTree)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		ErrorHandlerFunction(http.StatusInternalServerError, w, "Failed to marshal file tree")
 		return
 	}
 
@@ -316,7 +302,7 @@ func GetFileTree(directoryPath string) FileTree {
 
 	files, err := os.ReadDir(directoryPath)
 	if err != nil {
-		log.Println("Error reading directory:", err)
+		ErrorHandlerFunction(http.StatusInternalServerError, nil, "Failed to read directory")
 		return fileTree
 	}
 
@@ -361,7 +347,7 @@ func GetOpenAPIListHandler(w http.ResponseWriter, r *http.Request) {
 
 	jsonResponse, err := json.Marshal(openAPIList)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		ErrorHandlerFunction(http.StatusInternalServerError, w, "Failed to marshal openapi list")
 		return
 	}
 

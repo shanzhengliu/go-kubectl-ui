@@ -27,15 +27,16 @@ var (
 	mu sync.Mutex
 )
 
-func ServiceList(ctxMap map[string]interface{}, clientset *kubernetes.Clientset, namespace string) []Service {
-	servicesClient := clientset.CoreV1().Services(namespace)
+func ServiceList(ctxMap map[string]interface{}, clientSet *kubernetes.Clientset, namespace string) []Service {
+	servicesClient := clientSet.CoreV1().Services(namespace)
 	currentContext := ctxMap["environment"].(string)
-	service, error := servicesClient.List(context.TODO(), v1.ListOptions{})
-	if error != nil {
-		fmt.Println(error.Error())
+	service, err := servicesClient.List(context.TODO(), v1.ListOptions{})
+	if err != nil {
+		ErrorHandlerFunction(http.StatusInternalServerError, nil, "Failed to get services: "+err.Error())
+		return []Service{}
 	}
 
-	serviceList := []Service{}
+	var serviceList []Service
 
 	for _, item := range service.Items {
 		selectorString := MapToString(item.Spec.Selector)
@@ -83,7 +84,7 @@ func ServiceForwardHandler(w http.ResponseWriter, r *http.Request) {
 
 	isPortAvailable := IsPortAvailable(localPort)
 	if !isPortAvailable {
-		http.Error(w, "Port is already in use", http.StatusBadRequest)
+		ErrorHandlerFunction(http.StatusBadRequest, w, "Port is already in use")
 		return
 	}
 
