@@ -3,6 +3,7 @@ import { DisplayTable } from "./displayTable";
 import { authVerify, axiosInstance } from "../../utils/axios";
 import { SERVICE, START_PORT_FORWARD, STOP_PORT_FORWARD } from "../../utils/endpoints";
 import { Button, TextInput } from "flowbite-react";
+import Swal from "sweetalert2";
 
 export function Service() {
   const [renderData, setRenderData] = useState<any[][]>([]);
@@ -63,6 +64,12 @@ export function Service() {
       },
     }).then(() => {
       fetchData();
+    }).catch((error) => {
+
+       Swal.fire({
+        icon: "error",
+        text: error.response.data,
+       })
     });
   }
 
