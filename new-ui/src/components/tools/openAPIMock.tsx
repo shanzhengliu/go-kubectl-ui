@@ -2,6 +2,7 @@ import {Button, Label, Select, Textarea, TextInput} from "flowbite-react";
 import {inputHook} from "../../hooks/inputhook.tsx";
 import {useEffect, useState} from "react";
 import {axiosInstance} from "../../utils/axios.tsx";
+import Swal from "sweetalert2";
 
 
 export const OpenAPIMockView = (props: { mockLoader: any, mockPort: string }) => {
@@ -113,7 +114,7 @@ export const OpenAPIMockView = (props: { mockLoader: any, mockPort: string }) =>
 
     const generateRequestForm = () => {
         if (path && method && status && contentType) {
-            const finalUrl = "http://localhost:"+props.mockPort + path
+            const finalUrl = "http://localhost:" + props.mockPort + path
             const finalMethod = method;
             const finalStatus = status;
             const finalContentType = contentType;
@@ -123,6 +124,11 @@ export const OpenAPIMockView = (props: { mockLoader: any, mockPort: string }) =>
             setFinalStatus(finalStatus);
             setFinalContentType(finalContentType);
             setFinalExamples(finalExamples);
+        } else {
+            Swal.fire({
+                icon: "error",
+                text: "path, method, status, content type is required",
+            })
         }
     }
 
@@ -153,50 +159,50 @@ export const OpenAPIMockView = (props: { mockLoader: any, mockPort: string }) =>
 
     return (<div className={"w-full flex"}>
 
-                <div className={"flex w-full p-2"}>
+            <div className={"flex w-full p-2"}>
 
-                    <div className="p-2">
-                        <h2>Request Details Select</h2>
-                        <Label value="Path"/>
-                        <Select value={path} onChange={onChangePath}>
-                            <option value={""}>Select Path</option>
-                            {props.mockLoader.paths && Object.keys(props.mockLoader.paths).map((item, index) => {
-                                    return <option value={item} key={index}>{item}</option>
-                                }
-                            )}
-                        </Select>
-                        <Label value={"Method"}/>
-                        <Select value={method} onChange={onChangeMethod}>
-                            <option value={""}>Select Method</option>
-                            {methodList && methodList.map((item, index) => {
+                <div className="p-2">
+                    <h2>Request Details Select</h2>
+                    <Label value="Path"/>
+                    <Select value={path} onChange={onChangePath}>
+                        <option value={""}>Select Path</option>
+                        {props.mockLoader.paths && Object.keys(props.mockLoader.paths).map((item, index) => {
                                 return <option value={item} key={index}>{item}</option>
-                            })}
-                        </Select>
-                        <Label value={"Status"}/>
-                        <Select value={status} onChange={onChangeStatus}>
-                            <option value={""}>Select Status</option>
-                            {statusList && statusList.map((item, index) => {
+                            }
+                        )}
+                    </Select>
+                    <Label value={"Method"}/>
+                    <Select value={method} onChange={onChangeMethod}>
+                        <option value={""}>Select Method</option>
+                        {methodList && methodList.map((item, index) => {
+                            return <option value={item} key={index}>{item}</option>
+                        })}
+                    </Select>
+                    <Label value={"Status"}/>
+                    <Select value={status} onChange={onChangeStatus}>
+                        <option value={""}>Select Status</option>
+                        {statusList && statusList.map((item, index) => {
+                            return <option value={item} key={index}>{item}</option>
+                        })}
+                    </Select>
+                    <Label value={"Content Type"}/>
+                    <Select value={contentType} onChange={onChangeContentType}>
+                        <option value={""}>Select Content Type</option>
+                        {contentTypeList && contentTypeList.map((item, index) => {
                                 return <option value={item} key={index}>{item}</option>
-                            })}
-                        </Select>
-                        <Label value={"Content Type"}/>
-                        <Select value={contentType} onChange={onChangeContentType}>
-                            <option value={""}>Select Content Type</option>
-                            {contentTypeList && contentTypeList.map((item, index) => {
-                                    return <option value={item} key={index}>{item}</option>
-                                }
-                            )}
-                        </Select>
-                        <Label value={"Examples"}/>
-                        <Select value={examples} onChange={onChangeExamples}>
-                            <option value={""}>Select Examples</option>
-                            {exampleList && exampleList.map((item, index) => {
-                                return <option value={item} key={index}>{item}</option>
-                            })}
-                        </Select>
-                        <Button className={"mt-2"} onClick={generateRequestForm}>Generate Form</Button>
-                    </div>
+                            }
+                        )}
+                    </Select>
+                    <Label value={"Examples"}/>
+                    <Select value={examples} onChange={onChangeExamples}>
+                        <option value={""}>Select Examples</option>
+                        {exampleList && exampleList.map((item, index) => {
+                            return <option value={item} key={index}>{item}</option>
+                        })}
+                    </Select>
+                    <Button className={"mt-2"} onClick={generateRequestForm}>Generate Form</Button>
                 </div>
+            </div>
             <div className={"w-full p-2"}>
                 <h2>Generate Request Detail</h2>
                 <div>
@@ -223,14 +229,15 @@ export const OpenAPIMockView = (props: { mockLoader: any, mockPort: string }) =>
                     <Label value={"Body"}/>
                     <Textarea value={finalBody} onChange={onChangefinalBody}></Textarea>
                 </div>
-                <Button  className={"mt-2"} onClick={sendRequest}>Send</Button>
+                <Button className={"mt-2"} onClick={sendRequest}>Send</Button>
             </div>
             <div className={"w-full h-screen p-2"}>
                 <h2>Response</h2>
                 <Label value={"Status"}/>
-                <TextInput  readOnly className={""} value={responseStatus}></TextInput>
+                <TextInput readOnly className={""} value={responseStatus}></TextInput>
                 <Label className={"mt-2"} value={"Body"}/>
-                <Textarea  readOnly className={"resize-none h-screen"} value= {responseBody && JSON.stringify(responseBody,null,2 )}></Textarea>
+                <Textarea readOnly className={"resize-none h-screen"}
+                          value={responseBody && JSON.stringify(responseBody, null, 2)}></Textarea>
 
             </div>
         </div>
