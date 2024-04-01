@@ -65,4 +65,7 @@ Http Helper (light weight http request tool)
 Docker Shell (talk to the container running this web app, you can use "kubectl" , "helm" command. it means you don't need to install kubectl in your local machine)
 ![screenshot](./screenshot/docker%20shell.png)
 
+Open API helper Allows you to test the API. you can upload `zip` or `yaml` file to the docker container, and select the file you are going to mock, then select the port which you have expose to local, (from 7001-7100). you can test the api define in the open api doc via http tools, like `Postman` `curl` for write the code for the request you need.
+![screenshot](./screenshot/openapi%20helper.png)
+
 
