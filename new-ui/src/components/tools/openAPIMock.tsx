@@ -21,7 +21,7 @@ export const OpenAPIMockView = (props: { mockLoader: any, mockPort: string }) =>
     const [finalStatus, setFinalStatus, onChangefinalStatus] = inputHook("");
     const [finalContentType, setFinalContentType, onChangefinalContentType] = inputHook("");
     const [finalExamples, setFinalExamples, onChangefinalExamples] = inputHook("");
-    const [finalBody, setFinalBody, onChangefinalBody] = inputHook("");
+    const [finalBody, setFinalBody, onChangefinalBody] = inputHook("{}");
 
     const [responseBody, setResponseBody] = useState<any>({});
     const [responseStatus, setResponseStatus] = useState<number>(0);
@@ -65,7 +65,7 @@ export const OpenAPIMockView = (props: { mockLoader: any, mockPort: string }) =>
             setFinalContentType("");
             setFinalMethod("");
             setFinalStatus("");
-            setFinalBody("")
+            setFinalBody("{}")
             setResponseBody({})
             setResponseStatus(0)
 
@@ -104,7 +104,10 @@ export const OpenAPIMockView = (props: { mockLoader: any, mockPort: string }) =>
 
     useEffect(() => {
         if (path && method && status && contentType) {
-            setExampleList(Object.keys(props.mockLoader.paths[path][method].responses[status].content[contentType].examples));
+            if (props.mockLoader.paths[path][method].responses[status].content[contentType].examples) {
+                setExampleList(Object.keys(props.mockLoader.paths[path][method].responses[status].content[contentType].examples));
+            }
+
         }
     }, [contentType]);
 
@@ -132,7 +135,7 @@ export const OpenAPIMockView = (props: { mockLoader: any, mockPort: string }) =>
                 "openapi-status-code": finalStatus,
                 "openapi-content-type": finalContentType,
                 "openapi-examples": finalExamples,
-
+                "Content-Type": finalContentType,
                 "Accept": "*/*",
             },
             data: finalBody
