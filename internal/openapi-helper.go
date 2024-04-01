@@ -187,53 +187,21 @@ func StartOpenAPIFunction(path string, port string, r *http.Request, w http.Resp
 			fmt.Fprintf(w, "Invalid request: %v", err)
 			return
 		}
-		examples := MethodResponse(route.Method, route.PathItem).Status(status).Value.Content[contentType].Examples
+		responseContent := MethodResponse(route.Method, route.PathItem).Status(status).Value.Content[contentType]
 		var response interface{}
-		for key, example := range examples {
-			if response == nil && exampleKey == "" {
-				response = example.Value.Value
-			}
-			if key == exampleKey {
-				response = example.Value.Value
-			}
-		}
-		dirPath := filepath.Dir(path)
-		refPath := path
-		if refMap, ok := response.(map[string]interface{}); ok {
 
-			if ref, ok := refMap["$ref"]; ok {
-				refPath = filepath.Join(dirPath, ref.(string))
-				//read file from the path to json
-				file, err := os.ReadFile(refPath)
-				if err != nil {
-					fmt.Println("Failed to read file: %v", err)
-					w.WriteHeader(http.StatusInternalServerError)
-					fmt.Fprintf(w, "Failed to read file: %v", err)
-					return
-				}
-				err = json.Unmarshal(file, &response)
-				if err != nil {
-					fmt.Println("Failed to unmarshal response: %v", err)
-					w.WriteHeader(http.StatusInternalServerError)
-					fmt.Fprintf(w, "Failed to unmarshal response: %v", err)
-					return
-
-				}
-			} else {
-				fmt.Println("'$ref' not found")
-			}
+		if responseContent.Example != nil {
+			example := responseContent.Example
+			response = exampleHandler(example, path, w)
 		} else {
-			fmt.Println("response not the expect type")
+			examples := responseContent.Examples
+			response = examplesHandler(examples, exampleKey, path, w)
 		}
 
-		err = replaceRefs(response, filepath.Dir(refPath))
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Failed to marshal response: %v", err)
-			return
-		}
 		jsonData, err := json.Marshal(response)
 		w.Header().Set("Content-Type", contentType)
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.WriteHeader(status)
 		w.Write(jsonData)
 	})
@@ -242,6 +210,7 @@ func StartOpenAPIFunction(path string, port string, r *http.Request, w http.Resp
 		Addr:    ":" + port,
 		Handler: mux,
 	}
+
 	ctxMap["openapi#server#"+path+"#"+port] = srv
 	go func() {
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
@@ -251,6 +220,58 @@ func StartOpenAPIFunction(path string, port string, r *http.Request, w http.Resp
 
 }
 
+func handleResponse(response interface{}, path string, w http.ResponseWriter) interface{} {
+	if refMap, ok := response.(map[string]interface{}); ok {
+		if ref, ok := refMap["$ref"]; ok {
+			refPath := filepath.Join(filepath.Dir(path), ref.(string))
+			if err := readAndUnmarshalFile(refPath, &response, w); err != nil {
+				return response
+			}
+		}
+	}
+
+	if err := replaceRefs(response, filepath.Dir(path)); err != nil {
+		http.Error(w, fmt.Sprintf("Failed to marshal response: %v", err), http.StatusInternalServerError)
+		return response
+	}
+
+	return response
+}
+
+func readAndUnmarshalFile(path string, target interface{}, w http.ResponseWriter) error {
+	file, err := os.ReadFile(path)
+	if err != nil {
+		fmt.Printf("Failed to read file: %v\n", err)
+		http.Error(w, fmt.Sprintf("Failed to read file: %v", err), http.StatusInternalServerError)
+		return err
+	}
+
+	if err := json.Unmarshal(file, target); err != nil {
+		fmt.Printf("Failed to unmarshal file: %v\n", err)
+		http.Error(w, fmt.Sprintf("Failed to unmarshal file: %v", err), http.StatusInternalServerError)
+		return err
+	}
+
+	return nil
+}
+
+func exampleHandler(example interface{}, path string, w http.ResponseWriter) interface{} {
+	return handleResponse(example, path, w)
+}
+
+func examplesHandler(examples openapi3.Examples, exampleKey string, path string, w http.ResponseWriter) interface{} {
+	var response interface{}
+
+	for key, example := range examples {
+		if exampleKey == "" || key == exampleKey {
+			response = example.Value.Value
+			break
+		}
+	}
+
+	return handleResponse(response, path, w)
+}
+
 func StopOpenAPIFunction(path string, port string, r *http.Request, w http.ResponseWriter) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	key := "openapi#server#" + path + "#" + port
@@ -258,7 +279,7 @@ func StopOpenAPIFunction(path string, port string, r *http.Request, w http.Respo
 	if !ok {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("No server found"))
+		_, _ = w.Write([]byte("No server found"))
 		return
 	}
 	if err := srv.Shutdown(r.Context()); err != nil {
@@ -333,13 +354,6 @@ func GetCurrentOpenAPIListPortAndFileName(r *http.Request) []OpenAPIListenItem {
 		}
 	}
 	return openAPIList
-}
-
-type GlobalVarsKey struct{}
-
-// 全局变量结构
-type GlobalVars struct {
-	// 在此处添加你想要的任何全局变量
 }
 
 func GetOpenAPIListHandler(w http.ResponseWriter, r *http.Request) {
