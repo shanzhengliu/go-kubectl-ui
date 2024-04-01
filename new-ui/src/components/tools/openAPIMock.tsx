@@ -134,7 +134,7 @@ export const OpenAPIMockView = (props: { mockLoader: any, mockPort: string }) =>
             headers: {
                 "openapi-status-code": finalStatus,
                 "openapi-content-type": finalContentType,
-                "openapi-examples": finalExamples,
+                "openapi-example": finalExamples,
                 "Content-Type": finalContentType,
                 "Accept": "*/*",
             },
