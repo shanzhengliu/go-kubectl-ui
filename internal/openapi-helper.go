@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/rs/cors"
 	"log"
 	"net/http"
 	"os"
@@ -212,15 +213,23 @@ func StartOpenAPIFunction(path string, port string, r *http.Request, w http.Resp
 		}
 
 		w.Header().Set("Content-Type", contentType)
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+
 		w.WriteHeader(status)
 		json.NewEncoder(w).Encode(response)
 	})
 
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
+	})
+
+	handler := c.Handler(mux)
+
 	srv := &http.Server{
 		Addr:    ":" + port,
-		Handler: mux,
+		Handler: handler,
 	}
 
 	ctxMap["openapi#server#"+path+"#"+port] = srv
@@ -233,16 +242,18 @@ func StartOpenAPIFunction(path string, port string, r *http.Request, w http.Resp
 }
 
 func handleResponse(response interface{}, path string, w http.ResponseWriter) interface{} {
+	refPath := ""
 	if refMap, ok := response.(map[string]interface{}); ok {
+
 		if ref, ok := refMap["$ref"]; ok {
-			refPath := filepath.Join(filepath.Dir(path), ref.(string))
+			refPath = filepath.Join(filepath.Dir(path), ref.(string))
 			if err := readAndUnmarshalFile(refPath, &response, w); err != nil {
 				return response
 			}
 		}
 	}
 
-	if err := replaceRefs(response, filepath.Dir(path)); err != nil {
+	if err := replaceRefs(response, filepath.Dir(refPath)); err != nil {
 		http.Error(w, fmt.Sprintf("Failed to marshal response: %v", err), http.StatusInternalServerError)
 		return response
 	}
