@@ -66,6 +66,8 @@ export const OpenAPIMockView = (props: { mockLoader: any, mockPort: string }) =>
             setFinalMethod("");
             setFinalStatus("");
             setFinalBody("")
+            setResponseBody({})
+            setResponseStatus(0)
 
         }
     }, [props.mockLoader]);
@@ -127,7 +129,7 @@ export const OpenAPIMockView = (props: { mockLoader: any, mockPort: string }) =>
             method: finalMethod,
             url: finalUrl,
             headers: {
-                "openapi-status": finalStatus,
+                "openapi-status-code": finalStatus,
                 "openapi-content-type": finalContentType,
                 "openapi-examples": finalExamples,
 
@@ -138,6 +140,10 @@ export const OpenAPIMockView = (props: { mockLoader: any, mockPort: string }) =>
         axiosInstance.request(options).then(response => {
             setResponseBody(response.data);
             setResponseStatus(response.status);
+        }).catch(error => {
+            setResponseBody(error.response.data);
+            setResponseStatus(error.response.status);
+
         })
     }
 
