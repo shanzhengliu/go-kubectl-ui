@@ -1,5 +1,6 @@
 import {Button, Textarea} from "flowbite-react";
 import {inputHook} from "../../hooks/inputhook";
+import {jwtDecode} from "jwt-decode";
 import Swal from "sweetalert2";
 
 export const EncodeHelper = () => {
@@ -68,6 +69,14 @@ export const EncodeHelper = () => {
         }
     };
 
+    const jwtDecodeHandler = () => {
+        try {
+            setOutput(JSON.stringify(jwtDecode(input), null, 2));
+        } catch (error) {
+            setOutput("Invalid Token");
+        }
+    }
+
     return (
         <div>
             <div className="flex h-screen">
@@ -119,6 +128,13 @@ export const EncodeHelper = () => {
                         onClick={unicodeDecode}
                     >
                         Unicode Decode
+                    </Button>
+                    <Button
+                        className="w-24 h-12 mt-4 "
+                        gradientMonochrome="cyan"
+                        onClick={jwtDecodeHandler}
+                    >
+                        JWT Decode
                     </Button>
                     <Button
                         className="w-24 h-12 mt-4 "
