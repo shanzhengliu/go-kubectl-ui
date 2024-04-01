@@ -169,6 +169,7 @@ func main() {
 	router.HandleFunc("/api/openapi-helper-get-files", Chain(internal.GetFileTreeHandler, ContextAdd(ctx)))
 	// this url is current listening files
 	router.HandleFunc("/api/openapi-helper-list", Chain(internal.GetOpenAPIListHandler, ContextAdd(ctx)))
+	router.HandleFunc("/api/openapi-helper-file-view", Chain(internal.FileViewHandler, ContextAdd(ctx)))
 
 	cor := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},

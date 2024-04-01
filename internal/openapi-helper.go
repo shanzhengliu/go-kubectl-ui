@@ -36,6 +36,27 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("File uploaded successfully!"))
 }
 
+func FileViewHandler(w http.ResponseWriter, r *http.Request) {
+	filePath := r.URL.Query().Get("path")
+	if filePath == "" {
+		ErrorHandlerFunction(http.StatusBadRequest, w, "Path is required")
+		return
+	}
+	filePath = strings.Replace(filePath, "..", "", -1)
+	filePath = strings.Replace(filePath, "~", "", -1)
+	filePath = strings.Replace(filePath, "./", "", -1)
+	filePath = filepath.Join("/tmp/kubectl-go-upload", filePath)
+
+	file, err := os.ReadFile(filePath)
+	if err != nil {
+		ErrorHandlerFunction(http.StatusBadRequest, w, "Failed to read file")
+		return
+	}
+	response := map[string]interface{}{"content": string(file)}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
 func StartOpenAPIHandler(w http.ResponseWriter, r *http.Request) {
 	var requestBody struct {
 		Path string `json:"path"`
