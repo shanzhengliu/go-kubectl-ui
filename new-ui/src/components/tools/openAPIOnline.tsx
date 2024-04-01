@@ -45,6 +45,12 @@ export const OpenAPIOnline = () => {
   };
 
   const startListener = async () => {
+      if (selectFile === "NONE") {
+          Swal.fire({
+                icon: "error",
+                text: "Please select a file to start listener",
+            });
+          }
      await listenOperation("start", selectFile, port);
      setOpenApiList( await axiosInstance({ method: "GET", url: OPENAPI_HELPER_LIST }).then(response => response.data)) ;
   }
@@ -107,7 +113,7 @@ export const OpenAPIOnline = () => {
     <div className="">
         <div>
             <h1>OpenAPI Online </h1>
-            <span>you can upload the openapi file and start a server for testing via ui, now you can set up <span style={{"color":"red"}}>"openapi-status-code"</span>, <span style={{"color":"red"}}>"openapi-example"</span>, or <span style={{"color":"red"}}>"openapi-content-type"</span> in request header to control the response </span>
+            <span>you can upload the openapi  <span style={{color:"red"}}>zip</span> file and start a server for testing via ui, now you can set up <span style={{"color":"red"}}>"openapi-status-code"</span>, <span style={{"color":"red"}}>"openapi-example"</span>, or <span style={{"color":"red"}}>"openapi-content-type"</span> in request header to control the response </span>
         </div>
       <div className="mt-4 mb-2 w-full flex">
         <div className="mt-2 block">
