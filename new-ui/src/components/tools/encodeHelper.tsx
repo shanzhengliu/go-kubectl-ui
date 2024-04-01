@@ -1,6 +1,6 @@
 import {Button, Textarea} from "flowbite-react";
 import {inputHook} from "../../hooks/inputhook";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
 
 export const EncodeHelper = () => {
