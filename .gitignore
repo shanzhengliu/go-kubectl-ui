@@ -4,3 +4,4 @@ web-kubectl.exe
 .idea
 frontend-build
 docker-compose-local.yml
+bun.lockb
