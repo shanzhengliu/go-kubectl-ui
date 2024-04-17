@@ -4,7 +4,7 @@ import { authVerify, axiosInstance } from "../../utils/axios";
 import { SECRET, SECRET_DETAIL } from "../../utils/endpoints";
 import { Button, Modal } from "flowbite-react";
 import hljs from "highlight.js";
-import { set } from "lodash";
+
 export function Secret() {
   const [tableData, setTableData] = useState<any[][]>([]);
   const [openModal, setOpenModal] = useState(false);
@@ -33,8 +33,11 @@ export function Secret() {
             item.namespace,
             <Button
               onClick={() => {
+                setModalData({});
                 setOpenModal(true);
                 setModelHeader(item.name);
+                const highlightedElement = document.querySelector('[data-highlighted="yes"]');
+                highlightedElement?.removeAttribute('data-highlighted');
                 axiosInstance
                   .get(`${SECRET_DETAIL}?secret=${item.name}`)
                   .then((res) => {
@@ -81,7 +84,7 @@ export function Secret() {
                         <td className="px-4 py-2 font-medium">{key}</td>
                         <td className="px-4 py-2">
                           <pre className="bg-gray-100 p-2 rounded">
-                            <code className="language-json">{value}</code>
+                            <code className="language-json">  {JSON.stringify(value,null,2)}</code>
                           </pre>
                         </td>
                       </tr>
