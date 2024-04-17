@@ -10,6 +10,7 @@ export function Service() {
     const [localPorts, setLocalPorts] = useState<any>([]);
     const [servicePorts, setServicePorts] = useState<any>([]);
     const [response, setResponse] = useState<any>([]);
+    const [loading, setLoading] = useState(false);
 
 
     useEffect(() => {
@@ -17,6 +18,7 @@ export function Service() {
         if (response.length == 0 || localPorts.length == 0 || servicePorts.length == 0) {
             return;
         }
+
         for (let i = 0; i < response.length; i++) {
             responseData.push([
                 response[i].name,
@@ -90,6 +92,7 @@ export function Service() {
         if (response == "error") {
             return;
         }
+        setLoading(true);
         axiosInstance
             .get(SERVICE, {
                 data: {},
@@ -103,10 +106,11 @@ export function Service() {
                 setLocalPorts(localPortsArray);
                 setServicePorts(servicePortsArray);
                 setResponse(response.data);
+                setLoading(false);
             });
     }
 
-    useEffect( () => {
+    useEffect(() => {
         fetchData();
     }, []);
 
@@ -117,6 +121,7 @@ export function Service() {
                 header={["Service", "NameSpace", "Type", "Selector", "Local Port", "Service Port", ""]}
                 data={renderData}
                 refresh={fetchData}
+                isLoading={loading}
             ></DisplayTable>
         </div>
     );

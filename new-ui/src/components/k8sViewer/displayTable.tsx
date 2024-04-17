@@ -15,7 +15,7 @@ export function DisplayTable(props: {
     header: any[];
     data: any[][];
     checkbox?: boolean;
-    isLoading?:boolean;
+    isLoading?: boolean;
     refresh: () => void;
 }) {
     const [searchValue, setSearchValue] = React.useState("");
@@ -89,7 +89,7 @@ export function DisplayTable(props: {
         <div>
             <div className="flex justify-between items-center mb-4">
                 <ContextSwitcher onSwitch={props.refresh}/>
-                
+
                 <div className="flex items-center mb-4 ">
                     <Button
                         className="mr-2"
@@ -143,9 +143,13 @@ export function DisplayTable(props: {
                     ))}
                     <Button onClick={clearFlags} color="failure" className="ml-6">Clear</Button>
                 </div>)}
-
-                {props.isLoading &&<div className="flex"><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div><div>loading</div></div>}
             <div className="w-[calc(100vw-4rem)]">
+                {props.isLoading &&
+                    <div className="flex items-center justify-center w-full">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+                        <div className={"text-xl ml-2"}>loading</div>
+                    </div>
+                }
                 <Table hoverable>
                     <Table.Head>
                         {props.checkbox ? (
@@ -157,7 +161,9 @@ export function DisplayTable(props: {
                             <Table.HeadCell key={index}>{header}</Table.HeadCell>
                         ))}
                     </Table.Head>
+
                     <Table.Body className="divide-y">
+
                         {renderData.map((row, index) => (
                             <Table.Row
                                 key={index}
