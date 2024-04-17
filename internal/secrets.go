@@ -15,7 +15,7 @@ type Secret struct {
 	Namespace string `json:"namespace"`
 }
 
-func SecrectList(clientset *kubernetes.Clientset, namespace string) []Secrect {
+func SecrectList(clientset *kubernetes.Clientset, namespace string) []Secret {
 	secrectListClient := clientset.CoreV1().Secrets(namespace)
 	secrects, error := secrectListClient.List(context.TODO(), apiv1.ListOptions{})
 	if error != nil {
