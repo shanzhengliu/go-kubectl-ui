@@ -1,21 +1,24 @@
 import { useEffect, useState } from "react";
 import { DisplayTable } from "./displayTable";
 import { authVerify, axiosInstance } from "../../utils/axios";
-import { CONFIGMAP, CONFIGMAP_DETAIL } from "../../utils/endpoints";
+import { SECRET, SECRET_DETAIL } from "../../utils/endpoints";
 import { Button, Modal } from "flowbite-react";
 import hljs from "highlight.js";
-export function Configmap() {
+import { set } from "lodash";
+export function Secret() {
   const [tableData, setTableData] = useState<any[][]>([]);
   const [openModal, setOpenModal] = useState(false);
   const [modelHeader, setModelHeader] = useState("");
   const [modalData, setModalData] = useState<{ [key: string]: any }>({});
+  const [isLoading, setIsLoading] = useState(false);
   const dataFecth = async () => {
     const response = await authVerify();
     if (response == "error") {
       return;
     }
+    setIsLoading(true);
     axiosInstance
-      .get(CONFIGMAP, {
+      .get(SECRET, {
         data: {},
         headers: {
           "Content-Type": "application/json",
@@ -23,6 +26,7 @@ export function Configmap() {
       })
       .then((response) => {
         const responseData: any[][] = [];
+        setIsLoading(false);
         response.data.map((item: any) => {
           responseData.push([
             item.name,
@@ -32,7 +36,7 @@ export function Configmap() {
                 setOpenModal(true);
                 setModelHeader(item.name);
                 axiosInstance
-                  .get(`${CONFIGMAP_DETAIL}?configmap=${item.name}`)
+                  .get(`${SECRET_DETAIL}?secret=${item.name}`)
                   .then((res) => {
                     setModalData(res.data);
                   });
@@ -54,8 +58,9 @@ export function Configmap() {
     <div>
       <DisplayTable
         data={tableData}
-        header={["Configmap", "Namespace", ""]}
+        header={["Secret", "Namespace", ""]}
         refresh={dataFecth}
+        isLoading={isLoading}
       />
       <div>
         <div>

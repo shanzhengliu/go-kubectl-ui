@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Service } from "./service";
 import { Pod } from "./pod";
 import { Configmap } from "./configmap";
+import { Secret } from "./secret"
 import { Deployment } from "./deployment";
 import { Ingress } from "./ingress";
 import { Resource } from "./resource";
@@ -17,8 +18,10 @@ export const Navigator = () => {
     Deployment: <Deployment />,
     Service: <Service />,
     Configmap: <Configmap />,
+    Secret: <Secret />,
     Ingress: <Ingress />,
     Resource: <Resource />,
+
   };
 
   // const [currentComponent, setCurrentComponent] = useState("Resource");

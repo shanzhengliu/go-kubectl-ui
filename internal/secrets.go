@@ -15,7 +15,7 @@ type Secret struct {
 	Namespace string `json:"namespace"`
 }
 
-func SecrectList(clientset *kubernetes.Clientset, namespace string) []Secret {
+func SecretList(clientset *kubernetes.Clientset, namespace string) []Secret {
 	secrectListClient := clientset.CoreV1().Secrets(namespace)
 	secrects, error := secrectListClient.List(context.TODO(), apiv1.ListOptions{})
 	if error != nil {
@@ -51,7 +51,7 @@ func SecretDetail(clientset *kubernetes.Clientset, namespace string, name string
 func SecretListHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
-	result := SecrectList(clientset, ctxMap["namespace"].(string))
+	result := SecretList(clientset, ctxMap["namespace"].(string))
 	ReturnTypeHandler(r.Context(), result, w, r)
 }
 
@@ -59,5 +59,5 @@ func SecretDetailHandler(w http.ResponseWriter, r *http.Request) {
 	ctxMap := r.Context().Value("map").(map[string]interface{})
 	clientset := ctxMap["clientSet"].(*kubernetes.Clientset)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(SecretDetail(clientset, ctxMap["namespace"].(string), r.URL.Query().Get("secrect")))
+	json.NewEncoder(w).Encode(SecretDetail(clientset, ctxMap["namespace"].(string), r.URL.Query().Get("secret")))
 }
