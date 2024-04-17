@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"strings"
 
 	apiv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -59,6 +58,8 @@ func SecretDetail(clientset *kubernetes.Clientset, namespace string, name string
 			if error == nil {
 				var formatData map[string]interface{}
 				json.Unmarshal(gzipdata, &formatData)
+
+				decodeValidBase64Recursive(formatData)
 				// convertedJSON, _ := convertToMapInterface(string(gzipdata))
 				decodedData[key] = formatData
 
@@ -71,45 +72,54 @@ func SecretDetail(clientset *kubernetes.Clientset, namespace string, name string
 	return decodedData
 }
 
-func convertToMapInterface(jsonStr string) (string, error) {
-	var data interface{}
-	err := json.Unmarshal([]byte(jsonStr), &data)
-	if err != nil {
-		return "", err
+func isValidBase64(str string) bool {
+	if len(str)%4 != 0 {
+		return false
 	}
 
-	result := make(map[string]interface{})
-	convertToMapInterfaceRecursive(data, result)
-
-	jsonData, err := json.Marshal(result)
-	if err != nil {
-		return "", err
+	for _, c := range str {
+		if !isBase64Char(c) {
+			return false
+		}
 	}
 
-	return string(jsonData), nil
+	return true
 }
 
-func convertToMapInterfaceRecursive(data interface{}, result map[string]interface{}) {
+func isBase64Char(c rune) bool {
+	return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '+' || c == '/' || c == '='
+}
+
+func decodeValidBase64Recursive(data interface{}) {
 	switch value := data.(type) {
 	case map[string]interface{}:
 		for k, v := range value {
-			if _, ok := result[k]; !ok {
-				result[k] = make(map[string]interface{})
+			if str, ok := v.(string); ok {
+				if isValidBase64(str) && len(str) > 20 {
+					decodedValue, err := base64.StdEncoding.DecodeString(str)
+					if err != nil {
+
+						continue
+					}
+					value[k] = string(decodedValue)
+				}
+			} else {
+				decodeValidBase64Recursive(v)
 			}
-			convertToMapInterfaceRecursive(v, result[k].(map[string]interface{}))
 		}
 	case []interface{}:
 		for i, v := range value {
-			if _, ok := result[strconv.Itoa(i)]; !ok {
-				result[strconv.Itoa(i)] = make(map[string]interface{})
-			}
-			convertToMapInterfaceRecursive(v, result[strconv.Itoa(i)].(map[string]interface{}))
-		}
-	default:
+			if str, ok := v.(string); ok {
+				if isValidBase64(str) && len(str) > 20 {
+					decodedValue, err := base64.StdEncoding.DecodeString(str)
+					if err != nil {
 
-		for k, v := range result {
-			if _, ok := v.(map[string]interface{}); ok {
-				result[k] = value
+						continue
+					}
+					value[i] = string(decodedValue)
+				}
+			} else {
+				decodeValidBase64Recursive(v)
 			}
 		}
 	}
