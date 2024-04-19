@@ -95,7 +95,7 @@ func decodeValidBase64Recursive(data interface{}) {
 	case map[string]interface{}:
 		for k, v := range value {
 			if str, ok := v.(string); ok {
-				if isValidBase64(str) && len(str) > 30 {
+				if isValidBase64(str) && len(str) > 15 || k == "data" && len(str) > 15 {
 					decodedValue, err := base64.StdEncoding.DecodeString(str)
 					if err != nil {
 
@@ -110,7 +110,7 @@ func decodeValidBase64Recursive(data interface{}) {
 	case []interface{}:
 		for i, v := range value {
 			if str, ok := v.(string); ok {
-				if isValidBase64(str) && len(str) > 30 {
+				if isValidBase64(str) && len(str) > 15 {
 					decodedValue, err := base64.StdEncoding.DecodeString(str)
 					if err != nil {
 
