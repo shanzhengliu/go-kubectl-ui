@@ -46,7 +46,7 @@ COPY --from=BuildStage app/ app/
 
 COPY config /root/.kube/config
 
-COPY kubectl-go-upload/   /tmp/kubectl-go-upload
+RUN  mkdir  /tmp/kubectl-go-upload
 
 COPY --from=ENVStage /usr/local/bin/kubectl  /usr/local/bin/kubectl
 
