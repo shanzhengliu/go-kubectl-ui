@@ -1,0 +1,20 @@
+name: CI
+on:
+  push:
+    branches:
+      - main
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v4
+          - name: Docker meta
+            id: meta
+            uses: docker/metadata-action@v4
+            with:
+              images: samliu960522/go-kubectl-web
+              tags: |
+                type=semver,pattern=v{{major}}
+          - name: output
+            run: echo "The image is ${{ steps.meta.outputs.images }}"
