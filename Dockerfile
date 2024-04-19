@@ -42,7 +42,7 @@ RUN OS="$(uname | tr '[:upper:]' '[:lower:]')" && \
     tar -zxvf "helm-v3.14.3-${OS}-${ARCH}.tar.gz" && \
     mv "${OS}-${ARCH}/helm" /usr/local/bin/helm
 
-FROM alpine:latest
+FROM --platform=$TARGETPLATFORM alpine:latest
 
 WORKDIR /app
 
