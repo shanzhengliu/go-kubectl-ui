@@ -9,12 +9,15 @@ jobs:
         steps:
           - name: Checkout
             uses: actions/checkout@v4
-          - name: Docker meta
-            id: meta
-            uses: docker/metadata-action@v4
+          - name: Increment version
+            id: increment-version
+            uses: actions/github-script@v6
             with:
-              images: samliu960522/go-kubectl-web
-              tags: |
-                type=semver,pattern=v{{major}}, value=26
+              script: |
+                const currentVersion = 'v26'; 
+                const currentVersionNumber = parseInt(currentVersion.substring(1));
+                const nextVersionNumber = currentVersionNumber + 1;
+                const nextVersion = 'v' + nextVersionNumber;
+                core.setOutput('next-version', nextVersion);
           - name: output
-            run: echo "The image is ${{ steps.meta.outputs.images }}"
+            run: echo "The image is ${{ steps.increment-version.outputs.next-version }}"
