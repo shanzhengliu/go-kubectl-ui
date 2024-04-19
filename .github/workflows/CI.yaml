@@ -9,12 +9,39 @@ jobs:
         steps:
           - name: Checkout
             uses: actions/checkout@v4
+          - name: Get Largest Tag
+            id: get-latest-tag
+            uses: actions/github-script@v6
+            with:
+              script: |
+                const axios = require('axios');
+                const url = 'https://hub.docker.com/v2/repositories/samliu960522/go-kubectl-web/tags?page_size=1000';
+
+                try {
+                  const response = await axios.get(url);
+                  const tags = response.data.results.map(result => result.name);
+                  const versionTags = tags.filter(tag => tag.startsWith('v'));
+
+                  if (versionTags.length === 0) {
+                    core.setFailed('No tags found with format vxx');
+                    return;
+                  }
+
+                  const latestTag = versionTags.reduce((max, tag) => {
+                    const version = parseInt(tag.substring(1));
+                    return version > max ? tag : max;
+                  }, 0);
+
+                  core.setOutput('latest-tag', latestTag);
+                } catch (error) {
+                  core.setFailed(`Failed to fetch tags: ${error.message}`);
+                }
           - name: Increment version
             id: increment-version
             uses: actions/github-script@v6
             with:
               script: |
-                const currentVersion = 'v26'; 
+                const currentVersion = {{ steps.get-latest-tag.outputs.latest-tag }}; 
                 const currentVersionNumber = parseInt(currentVersion.substring(1));
                 const nextVersionNumber = currentVersionNumber + 1;
                 const nextVersion = 'v' + nextVersionNumber;
