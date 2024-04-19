@@ -86,6 +86,7 @@ jobs:
               platforms: linux/amd64,linux/arm64
               push: true
               tags: samliu960522/go-kubectl-web:latest, samliu960522/go-kubectl-web:${{ steps.increment-version.outputs.next-version }}
+
           - name: Print Image Result
             run: |
               echo "Version ${{ steps.increment-version.outputs.next-version }} has been pushed to Docker Hub">> $GITHUB_STEP_SUMMARY
