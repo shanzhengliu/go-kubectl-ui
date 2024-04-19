@@ -5,3 +5,4 @@ web-kubectl.exe
 frontend-build
 docker-compose-local.yml
 bun.lockb
+buildx.sh
