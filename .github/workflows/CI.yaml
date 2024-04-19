@@ -15,6 +15,6 @@ jobs:
             with:
               images: samliu960522/go-kubectl-web
               tags: |
-                type=semver,pattern=v{{major}}, value=v26
+                type=semver,pattern=v{{major}}, value=26
           - name: output
             run: echo "The image is ${{ steps.meta.outputs.images }}"
