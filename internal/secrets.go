@@ -90,18 +90,34 @@ func isBase64Char(c rune) bool {
 	return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '+' || c == '/' || c == '='
 }
 
+func containsInvalidChar(str string) bool {
+	for _, r := range str {
+		if r == '�' {
+			return true
+		}
+	}
+	return false
+}
+
 func decodeValidBase64Recursive(data interface{}) {
 	switch value := data.(type) {
 	case map[string]interface{}:
 		for k, v := range value {
 			if str, ok := v.(string); ok {
-				if isValidBase64(str) && len(str) > 15 || k == "data" && len(str) > 15 {
+				if isValidBase64(str) {
 					decodedValue, err := base64.StdEncoding.DecodeString(str)
+
 					if err != nil {
 
 						continue
 					}
-					value[k] = string(decodedValue)
+					decodedStr := string(decodedValue)
+
+					if containsInvalidChar(decodedStr) {
+						continue
+					}
+					value[k] = decodedStr
+
 				}
 			} else {
 				decodeValidBase64Recursive(v)
@@ -110,13 +126,17 @@ func decodeValidBase64Recursive(data interface{}) {
 	case []interface{}:
 		for i, v := range value {
 			if str, ok := v.(string); ok {
-				if isValidBase64(str) && len(str) > 15 {
+				if isValidBase64(str) {
 					decodedValue, err := base64.StdEncoding.DecodeString(str)
 					if err != nil {
 
 						continue
 					}
-					value[i] = string(decodedValue)
+					decodedStr := string(decodedValue)
+					if containsInvalidChar(decodedStr) {
+						continue
+					}
+					value[i] = decodedStr
 				}
 			} else {
 				decodeValidBase64Recursive(v)
