@@ -59,7 +59,7 @@ jobs:
             uses: actions/github-script@v6
             with:
               script: |
-                const currentVersion = ${{ steps.get-latest-tag.outputs.latest-tag }}; 
+                const currentVersion = "${{ steps.get-latest-tag.outputs.latest-tag }}"; 
                 const currentVersionNumber = parseInt(currentVersion.substring(1));
                 const nextVersionNumber = currentVersionNumber + 1;
                 const nextVersion = 'v' + nextVersionNumber;
